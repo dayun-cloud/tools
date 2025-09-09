@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>从夯到拉排行榜</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            padding: 50px 20px 0px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #2d2d2d;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .ranking-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+
+        .tier {
+            display: flex;
+            align-items: stretch;
+            min-height: 120px;
+            border-bottom: 2px solid #404040;
+            transition: all 0.3s ease;
+        }
+
+        .tier:hover {
+            background-color: #3a3a3a;
+        }
+
+        .tier.drag-over {
+            background-color: #404040;
+        }
+
+        .tier-label {
+            width: 150px;
+            text-align: center;
+            font-size: 1.9em;
+            font-weight: 900;
+            color: white;
+            -webkit-text-stroke: 1px black;
+            padding: 0px;
+            cursor: pointer;
+            outline: none;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .tier-name {
+            font-weight: 900 !important;
+            outline: none;
+            min-width: 20px;
+        }
+
+        .tier-name:focus {
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            padding: 0 5px;
+        }
+
+        .color-picker {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .tier-label.editing .color-picker {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .delete-tier-btn {
+            position: absolute;
+            left: -75px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border: 2px solid #ff3742;
+            border-radius: 50%;
+            color: #ff3742;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            font-size: 26px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tier-label.editing .delete-tier-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .help-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: #4ecdc4;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .help-btn:hover {
+            background: #45b7d1;
+            transform: scale(1.1);
+        }
+
+        .help-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .help-content {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            color: white;
+            position: relative;
+        }
+
+        .help-content h2 {
+            color: #4ecdc4;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .help-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .help-content li {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .help-content li:before {
+            content: "•";
+            color: #4ecdc4;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .close-help {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .close-help:hover {
+            color: white;
+        }
+
+        .add-tier-btn {
+            background: #444;
+            border: 2px dashed #666;
+            color: #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .add-tier-btn:hover {
+            background: #555;
+            border-color: #888;
+            color: #fff;
+        }
+
+        .tier-s { background: #ff4757; }
+        .tier-a { background: #ff9f43; }
+        .tier-b { background: #3742fa; }
+        .tier-c { background: #2ed573; }
+        .tier-d { background: #747d8c; }
+
+        .tier-content {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 5px;
+            min-height: 130px;
+            align-items: center;
+        }
+
+        .upload-btn {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed #666;
+            background: #404040;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            order: 999;
+        }
+
+        .upload-btn:hover {
+            border-color: #007bff;
+            background: #4a4a4a;
+            color: #007bff;
+        }
+
+        .delete-zone {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed #dc3545;
+            background: #4a3a3a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: #dc3545;
+            transition: all 0.3s ease;
+            order: 1000;
+        }
+
+        .delete-zone.drag-over {
+            background: #dc3545;
+            color: white;
+        }
+
+        .image-item {
+            width: 120px;
+            height: 120px;
+            overflow: hidden;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .image-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .image-item:active {
+            cursor: grabbing;
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+
+
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 10px 0 0 0;
+            justify-content: center;
+            background: #2d2d2d;
+        }
+
+        .drag-preview {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            width: 120px;
+            height: 120px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            transform: rotate(5deg);
+            opacity: 0.8;
+            display: none;
+        }
+
+        .drag-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+
+
+        @media (max-width: 768px) {
+            .tier {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tier-label {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="help-btn" onclick="showHelp()">?</button>
+    
+    <div class="help-modal" id="help-modal">
+        <div class="help-content">
+            <button class="close-help" onclick="hideHelp()">×</button>
+            <h2>📝 使用说明</h2>
+            <ul>
+                <li>点击"+"按钮或拖拽图片到该按钮上传图片</li>
+                <li>拖拽图片到"-"区域删除图片</li>
+                <li>点击评级名称可编辑文字，左侧按钮可编辑颜色，删除评级</li>
+                <li>点击底部"+添加评级"按钮创建新的评级</li>
+            </ul>
+            <div class="ranking-link" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #666; text-align: center;">
+                <p style="color: #4ecdc4; margin: 0;">🎵 <a href="index.html" target="_blank" style="color: #4ecdc4; text-decoration: none;">前往曼波配音生成器</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="ranking-container">
+            <div class="tier" data-tier="s">
+                <div class="tier-label" contenteditable="true" style="background-color: #e74d5a;">
+                    <input type="color" class="color-picker" value="#ff4757" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    夯
+                </div>
+                <div class="tier-content"></div>
+            </div>
+            <div class="tier" data-tier="a">
+                <div class="tier-label" style="background-color: #ff9f43;">
+                    <input type="color" class="color-picker" value="#ff9f43" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">顶级</span>
+                </div>
+                <div class="tier-content"></div>
+            </div>
+            <div class="tier" data-tier="b">
+                <div class="tier-label" style="background-color: #5a61e7;">
+                    <input type="color" class="color-picker" value="#3742fa" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">人上人</span>
+                </div>
+                <div class="tier-content"></div>
+            </div>
+            <div class="tier" data-tier="c">
+                <div class="tier-label" style="background-color: #2ed573;">
+                    <input type="color" class="color-picker" value="#2ed573" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">NPC</span>
+                </div>
+                <div class="tier-content"></div>
+            </div>
+            <div class="tier" data-tier="d">
+                <div class="tier-label" style="background-color: #747d8c;">
+                    <input type="color" class="color-picker" value="#747d8c" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">拉完了</span>
+                </div>
+                <div class="tier-content"></div>
+            </div>
+        </div>
+        
+        <div class="image-gallery" id="image-gallery">
+             <div class="upload-btn" onclick="document.getElementById('file-input').click()">+</div>
+             <div class="delete-zone" id="delete-zone">-</div>
+         </div>
+         
+         <div class="add-tier-btn" onclick="addNewTier()">+ 添加评级</div>
+        
+        <input type="file" id="file-input" accept="image/*" multiple>
+    </div>
+
+    <script>
+        let draggedElement = null;
+        let imageCounter = 0;
+
+        // 文件上传处理
+        const fileInput = document.getElementById('file-input');
+        const uploadBtn = document.querySelector('.upload-btn');
+        const deleteZone = document.getElementById('delete-zone');
+        const imageGallery = document.getElementById('image-gallery');
+
+        fileInput.addEventListener('change', handleFiles);
+
+        // 拖拽上传到上传按钮
+        uploadBtn.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBtn.classList.add('drag-over');
+        });
+
+        uploadBtn.addEventListener('dragleave', () => {
+            uploadBtn.classList.remove('drag-over');
+        });
+
+        uploadBtn.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBtn.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            handleFiles({ target: { files } });
+        });
+
+        // 删除区域拖拽处理
+        deleteZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            deleteZone.classList.add('drag-over');
+        });
+
+        deleteZone.addEventListener('dragleave', () => {
+            deleteZone.classList.remove('drag-over');
+        });
+
+        deleteZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            deleteZone.classList.remove('drag-over');
+            if (draggedElement) {
+                draggedElement.remove();
+                draggedElement = null;
+            }
+        });
+
+        function handleFiles(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        createImageItem(e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function createImageItem(src) {
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            imageItem.dataset.id = 'img-' + (++imageCounter);
+            
+            imageItem.innerHTML = `<img src="${src}" alt="上传的图片">`;
+            
+            // 添加鼠标事件
+            imageItem.addEventListener('mousedown', handleMouseDown);
+            imageItem.addEventListener('dragstart', handleDragStart);
+            imageItem.addEventListener('dragend', handleDragEnd);
+            
+            // 插入到上传按钮前面
+            imageGallery.insertBefore(imageItem, uploadBtn);
+        }
+
+        // 自定义拖拽预览
+        let dragPreview = null;
+        let isDragging = false;
+
+        // 拖拽功能
+        function handleDragStart(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // 自定义拖拽实现
+        let isMouseDown = false;
+        let startX, startY;
+
+        function handleMouseDown(e) {
+            if (e.button !== 0) return; // 只处理左键
+            
+            isMouseDown = true;
+            draggedElement = this;
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            this.style.opacity = '0.3';
+            
+            e.preventDefault();
+        }
+
+        function handleMouseMove(e) {
+            if (!isMouseDown || !draggedElement) return;
+            
+            const deltaX = Math.abs(e.clientX - startX);
+            const deltaY = Math.abs(e.clientY - startY);
+            
+            // 开始拖拽的阈值
+            if (deltaX > 5 || deltaY > 5) {
+                if (!isDragging) {
+                    isDragging = true;
+                    createDragPreview(draggedElement);
+                }
+                
+                if (dragPreview) {
+                    dragPreview.style.display = 'block';
+                    dragPreview.style.left = (e.clientX - 60) + 'px';
+                    dragPreview.style.top = (e.clientY - 60) + 'px';
+                }
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (!isMouseDown) return;
+            
+            isMouseDown = false;
+            
+            if (isDragging) {
+                // 检查放置目标
+                const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+                const tier = elementBelow?.closest('.tier');
+                const deleteZone = elementBelow?.closest('.delete-zone');
+                const imageGallery = elementBelow?.closest('.image-gallery');
+                
+                if (deleteZone) {
+                    draggedElement.remove();
+                } else if (tier) {
+                    const tierContent = tier.querySelector('.tier-content');
+                    tierContent.appendChild(draggedElement);
+                } else if (imageGallery && !deleteZone) {
+                    imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                }
+            }
+            
+            // 清理
+            if (draggedElement) {
+                draggedElement.style.opacity = '1';
+            }
+            
+            if (dragPreview) {
+                dragPreview.remove();
+                dragPreview = null;
+            }
+            
+            isDragging = false;
+            draggedElement = null;
+        }
+
+        function createDragPreview(element) {
+            if (dragPreview) {
+                dragPreview.remove();
+            }
+            
+            dragPreview = document.createElement('div');
+            dragPreview.className = 'drag-preview';
+            dragPreview.innerHTML = element.innerHTML;
+            document.body.appendChild(dragPreview);
+        }
+
+        // 绑定鼠标事件
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        // 为tier添加视觉反馈
+        document.querySelectorAll('.tier').forEach(tier => {
+            tier.addEventListener('mouseenter', function(e) {
+                if (isDragging) {
+                    this.classList.add('drag-over');
+                }
+            });
+            tier.addEventListener('mouseleave', function(e) {
+                this.classList.remove('drag-over');
+            });
+        });
+
+        // 为删除区域添加视觉反馈
+        deleteZone.addEventListener('mouseenter', function(e) {
+            if (isDragging) {
+                this.classList.add('drag-over');
+            }
+        });
+        deleteZone.addEventListener('mouseleave', function(e) {
+            this.classList.remove('drag-over');
+        });
+
+
+
+        // 为tier内的图片添加鼠标事件（动态添加）
+        document.addEventListener('mousedown', function(e) {
+            if (e.target.closest('.image-item')) {
+                handleMouseDown.call(e.target.closest('.image-item'), e);
+            }
+        });
+
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.closest('.image-item')) {
+                handleDragStart.call(e.target.closest('.image-item'), e);
+            }
+        });
+
+        document.addEventListener('dragend', function(e) {
+            if (e.target.closest('.image-item')) {
+                handleDragEnd.call(e.target.closest('.image-item'), e);
+            }
+        });
+
+        // 阻止页面默认的拖拽行为
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+        });
+
+        // 阻止图片的默认拖拽
+        document.addEventListener('selectstart', (e) => {
+            if (e.target.closest('.image-item')) {
+                e.preventDefault();
+            }
+        });
+
+
+
+        // 评级标签点击事件
+        document.addEventListener('click', function(e) {
+            // 如果点击的是删除按钮或颜色选择器，不处理编辑状态
+            if (e.target.classList.contains('delete-tier-btn') || e.target.classList.contains('color-picker')) {
+                return;
+            }
+            
+            // 如果点击的是tier-label或tier-name
+            const tierLabel = e.target.closest('.tier-label');
+            if (tierLabel || e.target.classList.contains('tier-name')) {
+                // 移除其他标签的编辑状态
+                document.querySelectorAll('.tier-label').forEach(label => {
+                    label.classList.remove('editing');
+                });
+                // 添加当前标签的编辑状态
+                if (tierLabel) {
+                    tierLabel.classList.add('editing');
+                    // 如果点击的是tier-label但不是tier-name，聚焦到tier-name
+                    if (!e.target.classList.contains('tier-name')) {
+                        const tierName = tierLabel.querySelector('.tier-name');
+                        if (tierName) {
+                            tierName.focus();
+                        }
+                    }
+                }
+            }
+        });
+
+        // 点击其他地方时移除编辑状态
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.tier-label') || e.target.classList.contains('delete-tier-btn')) {
+                document.querySelectorAll('.tier-label').forEach(label => {
+                    label.classList.remove('editing');
+                });
+            }
+        });
+
+        // 颜色选择器事件
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('color-picker')) {
+                const tierLabel = e.target.closest('.tier-label');
+                tierLabel.style.backgroundColor = e.target.value;
+            }
+        });
+
+        // 添加新评级函数
+        function addNewTier() {
+            const rankingContainer = document.querySelector('.ranking-container');
+            const tierCount = document.querySelectorAll('.tier').length + 1;
+            const randomColor = '#808080';
+            
+            const newTier = document.createElement('div');
+            newTier.className = 'tier';
+            newTier.dataset.tier = 'new' + tierCount;
+            
+            newTier.innerHTML = `
+                <div class="tier-label" style="background-color: ${randomColor};">
+                    <input type="color" class="color-picker" value="${randomColor}" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">新评级${tierCount}</span>
+                </div>
+                <div class="tier-content"></div>
+            `;
+            
+            // 为新tier添加视觉反馈
+            newTier.addEventListener('mouseenter', function(e) {
+                if (isDragging) {
+                    this.classList.add('drag-over');
+                }
+            });
+            newTier.addEventListener('mouseleave', function(e) {
+                this.classList.remove('drag-over');
+            });
+            
+            rankingContainer.appendChild(newTier);
+        }
+
+        // 删除评级函数
+        function deleteTier(btn) {
+            const tier = btn.closest('.tier');
+            const tierContent = tier.querySelector('.tier-content');
+            
+            // 将该评级中的图片移回图片库
+            const images = tierContent.querySelectorAll('.image-item');
+            images.forEach(img => {
+                imageGallery.insertBefore(img, uploadBtn);
+            });
+            
+            // 删除评级
+            tier.remove();
+        }
+
+        // 帮助弹窗函数
+        function showHelp() {
+            document.getElementById('help-modal').style.display = 'flex';
+        }
+
+        function hideHelp() {
+            document.getElementById('help-modal').style.display = 'none';
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('help-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideHelp();
+            }
+        });
+
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideHelp();
+            }
+        });
+    </script>
+    <div style="text-align: center; color: #999; font-size: 12px; padding: 90px 0 8px 0; margin-top: 20px;"><a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding-right: 15px; border-right: 1px solid #666;">联系信息</a><span style="color: #999; padding-left: 15px;">© 2025 大沄</span></div>
+</body>
+</html>

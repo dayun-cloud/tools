@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>曼波配音生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        .welcome-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            color: #e0e0e0;
+            padding: 10px 100px 10px 50px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .welcome-text {
+            font-weight: 600;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .like-container {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+        
+        .like-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+        }
+        
+        .like-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        .like-btn.liked .heart-icon {
+            color: #ff4d4d;
+        }
+        
+        .like-count {
+            margin-left: 5px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            padding-top: 20px;
+            margin-top: -30px;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: #2d2d44;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid #3d3d5c;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #e0e0e0;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #b0b0b0;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e0e0e0;
+            font-weight: 600;
+        }
+
+        .input-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #3d3d5c;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: none;
+            height: 240px;
+            transition: border-color 0.3s;
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #87cfde;
+        }
+
+        .input-group textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .input-group textarea::-webkit-scrollbar-track {
+            background: #2d2d44;
+            border-radius: 4px;
+        }
+
+        .input-group textarea::-webkit-scrollbar-thumb {
+            background: #3d3d5c;
+            border-radius: 4px;
+        }
+
+        .input-group textarea::-webkit-scrollbar-thumb:hover {
+            background: #4d4d6c;
+        }
+
+        .input-group textarea::placeholder {
+            color: #888;
+        }
+
+
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            font-weight: 600;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #1a1a2e;
+            border-radius: 10px;
+            border: 1px solid #3d3d5c;
+        }
+
+        .result-section.success {
+            background: #1a1a2e;
+            border: 1px solid #3d3d5c;
+        }
+
+        .result-section.error {
+            background: #2e1a1a;
+            border: 1px solid #5a2d2d;
+        }
+
+        .audio-player {
+            margin: 20px 0;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            height: 50px;
+        }
+
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading-spinner {
+            border: 4px solid #3d3d5c;
+            border-top: 4px solid #87cfde;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #2e1a1a;
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #5a2d2d;
+        }
+
+        .success-message {
+            background: transparent;
+            color: #87cfde;
+            padding: 0px 0 15px 0px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            color: #1a1a2e;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .help-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .help-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .help-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .help-content {
+            background: #2d2d44;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            color: #e0e0e0;
+            position: relative;
+            border: 1px solid #3d3d5c;
+        }
+
+        .help-content h2 {
+            color: #87cfde;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .help-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .help-content li {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .help-content li:before {
+            content: "•";
+            color: #87cfde;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .close-help {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .close-help:hover {
+            color: #e0e0e0;
+        }
+
+        .ranking-link {
+            margin-top: 20px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #3d3d5c;
+        }
+
+        .ranking-link a {
+            color: #87cfde;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .ranking-link a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            color: #999;
+            font-size: 12px;
+            z-index: 50;
+        }
+
+        .history-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .history-content {
+            background: #2d2d44;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            color: #e0e0e0;
+            position: relative;
+            border: 1px solid #3d3d5c;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: #1a1a2e;
+            border-radius: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: #87cfde;
+            border-radius: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb:hover {
+            background: #65a6bc;
+        }
+
+        .history-content h2 {
+            color: #87cfde;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .close-history {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .close-history:hover {
+            color: #e0e0e0;
+        }
+
+        .history-item {
+            background: #1a1a2e;
+            border: 1px solid #3d3d5c;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .history-text {
+            flex: 0 0 30%;
+            color: #e0e0e0;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .history-link {
+            color: #87cfde;
+            text-decoration: none;
+            font-size: 12px;
+            word-break: break-all;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 10px;
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .delete-btn:hover {
+            background: #ff5252;
+        }
+
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .confirm-content {
+            background: #2d2d44;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+            color: #e0e0e0;
+            text-align: center;
+            border: 1px solid #3d3d5c;
+        }
+
+        .confirm-content h3 {
+            color: #87cfde;
+            margin-bottom: 15px;
+        }
+
+        .confirm-content p {
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .confirm-btn.yes {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .confirm-btn.no {
+            background: #87cfde;
+            color: #1a1a2e;
+        }
+
+        .confirm-btn:hover {
+            opacity: 0.8;
+        }
+
+        .history-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .download-links {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-banner">
+        <div class="welcome-text">欢迎使用曼波配音生成器，觉得不错点个赞吧~(≧∀≦)</div>
+        <div class="like-container">
+            <button class="like-btn" id="likeBtn" onclick="likeAction()">
+                <span class="heart-icon">❤️</span>
+            </button>
+            <span class="like-count" id="likeCount">0</span>
+        </div>
+    </div>
+    <button class="help-btn" onclick="showHelp()">?</button>
+    
+    <div class="help-modal" id="help-modal">
+        <div class="help-content">
+            <button class="close-help" onclick="hideHelp()">×</button>
+            <h2>📝 使用说明</h2>
+            <ul>
+                <li>在文本框中输入要转换的文字内容</li>
+                <li>点击生成按钮，将调用API进行语音合成</li>
+                <li>生成成功后可直接在页面播放音频</li>
+                <li>点击复制按钮可获取音频文件链接</li>
+                <li>在音频播放组件右边更多选项里点击下载</li>
+            </ul>
+            <div class="ranking-link">
+                <p>🎯 <a href="ranking.html" target="_blank">前往从夯到拉排行榜</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="history-modal" id="history-modal">
+        <div class="history-content">
+            <button class="close-history" onclick="hideHistory()">×</button>
+            <h2>📋 生成历史</h2>
+            <div class="history-list" id="history-list">
+                <p style="color: #999; text-align: center; padding: 20px;">暂无历史记录</p>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="clearHistory()" style="background: #ff6b6b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">清空历史</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="confirm-modal" id="confirm-modal">
+        <div class="confirm-content">
+            <h3>⚠️ 确认操作</h3>
+            <p id="confirm-message">确定要执行此操作吗？</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn yes" onclick="confirmAction(true)">确定</button>
+                <button class="confirm-btn no" onclick="confirmAction(false)">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🎵 曼波配音生成器</h1>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="textInput">输入要转换的文字：</label>
+                <textarea id="textInput" placeholder="请输入您想要转换为语音的文字..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="generate-btn" onclick="generateSpeech()" style="flex: 1;">🎤 生成语音</button>
+                <button class="history-btn" onclick="showHistory()" style="background: linear-gradient(90deg, #65a6bc, #87cfde); color: white; border: none; padding: 15px 20px; font-size: 16px; border-radius: 10px; cursor: pointer; transition: transform 0.3s; font-weight: 600; white-space: nowrap;">📋 历史</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>正在生成语音，请稍候...</p>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // 后端API地址 - 部署后需要修改为实际的Cloudflare Workers地址
+        const BACKEND_URL = 'https://api-mb.dayun.cool';
+        
+        // 点赞相关变量
+        const DAILY_SEND_LIMIT = 5;
+        let dailySendCount = 0;
+        let pendingLikes = 0;
+        let lastLikeTime = 0;
+        let sendTimeout = null;
+        let isShowingWarning = false;
+        let isLimitReached = false;
+        
+        // 页面加载时获取统计数据
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await fetchStats();
+                // 初始化每日发送计数
+                initDailySendCount();
+            } catch (error) {
+            }
+        });
+        
+        // 初始化每日发送计数
+        function initDailySendCount() {
+            const today = new Date().toDateString();
+            const lastDate = localStorage.getItem('lastSendDate');
+            
+            if (lastDate !== today) {
+                // 新的一天，重置计数
+                dailySendCount = 0;
+                isLimitReached = false;
+                localStorage.setItem('lastSendDate', today);
+                localStorage.setItem('sendCount', '0');
+            } else {
+                // 同一天，恢复计数
+                dailySendCount = parseInt(localStorage.getItem('sendCount')) || 0;
+                isLimitReached = dailySendCount >= DAILY_SEND_LIMIT;
+            }
+        }
+        
+        // 显示频率警告
+        function showFrequencyWarning() {
+            if (isShowingWarning) return;
+            
+            isShowingWarning = true;
+            const likeBtn = document.getElementById('likeBtn');
+            const warning = document.createElement('div');
+            warning.textContent = '太频繁了~歇一会吧~';
+            warning.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #ff6b6b;
+                color: white;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                white-space: nowrap;
+                z-index: 1000;
+                margin-top: 5px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            `;
+            
+            likeBtn.parentElement.style.position = 'relative';
+            likeBtn.parentElement.appendChild(warning);
+            
+            setTimeout(() => {
+                if (warning.parentElement) {
+                    warning.parentElement.removeChild(warning);
+                }
+                isShowingWarning = false;
+            }, 3000);
+        }
+        
+        // 发送累积的点赞到后端
+        async function sendPendingLikes() {
+            if (pendingLikes === 0) return;
+            
+            if (dailySendCount >= DAILY_SEND_LIMIT) {
+                isLimitReached = true; // 标记已达到限制
+                showFrequencyWarning();
+                pendingLikes = 0; // 清空待发送的点赞
+                return;
+            }
+            
+            const likesToSend = pendingLikes;
+            pendingLikes = 0;
+            dailySendCount++;
+            
+            // 保存到本地存储
+            localStorage.setItem('sendCount', dailySendCount.toString());
+            
+            try {
+                await fetch(`${BACKEND_URL}/api/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ count: likesToSend })
+                });
+            } catch (error) {
+                // 静默处理错误
+            }
+            
+            // 重置点击时间，确保下次点击被正确识别
+            lastLikeTime = 0;
+        }
+        
+        // 获取统计数据
+        async function fetchStats() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 更新点赞数
+                    document.getElementById('likeCount').textContent = data.like_count;
+                    
+                    // 在控制台显示生成次数
+                    console.log(`曼波配音生成器已被使用 ${data.generate_count} 次`);
+                }
+            } catch (error) {
+            }
+        }
+        
+        // 点赞功能
+        function likeAction() {
+            const likeBtn = document.getElementById('likeBtn');
+            const likeCount = document.getElementById('likeCount');
+            const currentTime = Date.now();
+            
+            // 检查是否已达到发送限制或即将达到限制
+            if (isLimitReached || dailySendCount >= DAILY_SEND_LIMIT) {
+                // 达到限制后不更新UI，只显示警告
+                if (!isShowingWarning) {
+                    showFrequencyWarning();
+                }
+                if (!isLimitReached) {
+                    isLimitReached = true;
+                }
+                return;
+            }
+            
+            // 立即更新UI
+            const currentCount = parseInt(likeCount.textContent) || 0;
+            likeCount.textContent = currentCount + 1;
+            pendingLikes++;
+            
+            // 添加点赞动画效果
+            likeBtn.classList.add('liked');
+            likeBtn.style.transform = 'scale(1.3)';
+            
+            setTimeout(() => {
+                likeBtn.style.transform = 'scale(1)';
+            }, 300);
+            
+            // 检查点击频率
+            const timeSinceLastClick = lastLikeTime === 0 ? 0 : currentTime - lastLikeTime;
+            const isFirstClick = lastLikeTime === 0;
+            lastLikeTime = currentTime;
+            
+            // 清除之前的定时器
+            if (sendTimeout) {
+                clearTimeout(sendTimeout);
+            }
+            
+            // 如果是首次点击或点击频率超过每秒1次，延迟发送
+            if (isFirstClick || timeSinceLastClick < 1000) {
+                // 首次点击或高频点击，设置延迟发送
+                sendTimeout = setTimeout(() => {
+                    sendPendingLikes();
+                }, 1000);
+            } else {
+                // 正常频率，立即发送
+                sendTimeout = setTimeout(() => {
+                    sendPendingLikes();
+                }, 100);
+            }
+        }
+
+        async function generateSpeech() {
+            const text = document.getElementById('textInput').value.trim();
+            
+            if (!text) {
+                alert('请输入要转换的文字！');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('resultSection');
+            const generateBtn = document.querySelector('.generate-btn');
+
+            loading.style.display = 'block';
+            resultSection.style.display = 'none';
+            generateBtn.disabled = true;
+
+            try {
+                // 直接调用原始API
+                const encodedText = encodeURIComponent(text);
+                const apiUrl = `https://api.milorapart.top/apis/mbAIsc?text=${encodedText}`;
+                
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (data.code === 200 && data.url) {
+                    try {
+                        // 增加生成次数统计
+                        await fetch(`${BACKEND_URL}/api/stats`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        // 更新统计数据
+                        await fetchStats();
+                        console.log('语音生成次数统计已更新');
+                    } catch (statsError) {
+                    }
+                    
+                    showSuccess(data.url, text);
+                } else {
+                    showError(data.msg || '生成失败，请重试');
+                }
+            } catch (error) {
+                console.error('请求失败:', error);
+                showError('网络请求失败，请检查网络连接');
+            } finally {
+                loading.style.display = 'none';
+                generateBtn.disabled = false;
+            }
+        }
+
+        function showSuccess(audioUrl, text) {
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultSection.className = 'result-section success';
+            resultContent.innerHTML = `
+                <div class="success-message">
+                    <h3>✅ 语音生成成功！</h3>
+                    <button class="copy-btn" onclick="copyLink('${audioUrl}')">📋 复制链接</button>
+                </div>
+                
+                <div class="audio-player">
+                    <audio controls>
+                        <source src="${audioUrl}" type="audio/mpeg">
+                        您的浏览器不支持音频播放。
+                    </audio>
+                </div>
+            `;
+            
+            resultSection.style.display = 'block';
+            
+            // 保存到历史记录
+            saveToHistory(text, audioUrl);
+        }
+
+        function showError(message) {
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultSection.className = 'result-section error';
+            resultContent.innerHTML = `
+                <div class="error-message">
+                    <h3>❌ 生成失败</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            resultSection.style.display = 'block';
+        }
+
+
+        function copyLink(audioUrl) {
+            const copyBtn = document.querySelector('.copy-btn');
+            
+            if (copyBtn.textContent === '✅ 已复制') {
+                return;
+            }
+            
+            navigator.clipboard.writeText(audioUrl).then(function() {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ 已复制';
+                
+                setTimeout(function() {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            }).catch(function(err) {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动复制链接');
+            });
+        }
+
+        // 帮助弹窗函数
+        function showHelp() {
+            document.getElementById('help-modal').style.display = 'flex';
+        }
+
+        function hideHelp() {
+            document.getElementById('help-modal').style.display = 'none';
+        }
+
+        // 历史记录功能
+        function showHistory() {
+            document.getElementById('history-modal').style.display = 'flex';
+            loadHistory();
+        }
+
+        function hideHistory() {
+            document.getElementById('history-modal').style.display = 'none';
+        }
+
+        function saveToHistory(text, audioUrl) {
+            const history = getHistory();
+            const shortText = text.length > 20 ? text.substring(0, 20) + '...' : text;
+            const record = {
+                text: shortText,
+                fullText: text,
+                url: audioUrl,
+                timestamp: new Date().toLocaleString()
+            };
+            history.unshift(record); // 添加到开头
+            // 限制历史记录数量为50条
+            if (history.length > 50) {
+                history.splice(50);
+            }
+            localStorage.setItem('tts_history', JSON.stringify(history));
+        }
+
+        function getHistory() {
+            const history = localStorage.getItem('tts_history');
+            return history ? JSON.parse(history) : [];
+        }
+
+        function loadHistory() {
+            const history = getHistory();
+            const historyList = document.getElementById('history-list');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">暂无历史记录</p>';
+                return;
+            }
+
+            historyList.innerHTML = history.map((record, index) => `
+                <div class="history-item">
+                    <div class="history-text" title="${record.fullText}">${record.text}</div>
+                    <a href="${record.url}" target="_blank" class="history-link" title="${record.url}">${record.url}</a>
+                    <button class="delete-btn" onclick="deleteHistoryItem(${index})">删除</button>
+                </div>
+            `).join('');
+        }
+
+        let confirmCallback = null;
+
+        function showConfirm(message, callback) {
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirm-modal').style.display = 'flex';
+            confirmCallback = callback;
+        }
+
+        function confirmAction(result) {
+            document.getElementById('confirm-modal').style.display = 'none';
+            if (confirmCallback) {
+                confirmCallback(result);
+                confirmCallback = null;
+            }
+        }
+
+        function clearHistory() {
+            showConfirm('确定要清空所有历史记录吗？', (result) => {
+                if (result) {
+                    localStorage.removeItem('tts_history');
+                    loadHistory();
+                }
+            });
+        }
+
+        function deleteHistoryItem(index) {
+            showConfirm('确定要删除这条记录吗？', (result) => {
+                if (result) {
+                    const history = getHistory();
+                    history.splice(index, 1);
+                    localStorage.setItem('tts_history', JSON.stringify(history));
+                    loadHistory();
+                }
+            });
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('help-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideHelp();
+            }
+        });
+
+        document.getElementById('history-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideHistory();
+            }
+        });
+
+        document.getElementById('confirm-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                confirmAction(false);
+            }
+        });
+
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideHelp();
+                hideHistory();
+                confirmAction(false);
+            }
+        });
+
+    </script>
+    
+    <div class="footer">
+        <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding-right: 15px; border-right: 1px solid #666;">联系信息</a>
+        <span style="color: #999; padding-left: 15px;">© 2025 大沄</span>
+    </div>
+</body>
+</html>
