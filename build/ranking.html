@@ -346,7 +346,29 @@
             display: none;
         }
 
+        /* 图片放大模态框样式 */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 60px;
+            z-index: 3000;
+            cursor: pointer;
+        }
 
+        .image-modal img {
+            min-width: 800px;
+            min-height: 500px;
+            max-width: 800px;
+            max-height: 500px;
+            object-fit: contain;
+        }
 
         @media (max-width: 768px) {
             .tier {
@@ -370,10 +392,13 @@
             <button class="close-help" onclick="hideHelp()">×</button>
             <h2>📝 使用说明</h2>
             <ul>
-                <li>点击"+"按钮或拖拽图片到该按钮上传图片</li>
-                <li>拖拽图片到"-"区域删除图片</li>
-                <li>点击评级名称可编辑文字，左侧按钮可编辑颜色，删除评级</li>
-                <li>点击底部"+添加评级"按钮创建新的评级</li>
+                <li>添加图片：点击"+"按钮或拖拽图片到该按钮区域</li>
+                <li>删除图片：将图片拖拽到"-"区域删除</li>
+                <li>放大图片：点击图片可放大，再次点击任意区域恢复</li>
+                <li>编辑评级：点击评级名称可编辑文字</li>
+                <li>编辑颜色：点击评级名称后左侧颜色按钮可编辑颜色</li>
+                <li>删除评级：点击评级名称后左侧删除按钮可删除评级</li>
+                <li>创建新评级：点击底部"+添加评级"按钮创建新的评级</li>
             </ul>
             <div class="ranking-link" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #666; text-align: center;">
                 <p style="color: #4ecdc4; margin: 0;">🎵 <a href="index.html" target="_blank" style="color: #4ecdc4; text-decoration: none;">前往曼波配音生成器</a></p>
@@ -433,6 +458,11 @@
          <div class="add-tier-btn" onclick="addNewTier()">+ 添加评级</div>
         
         <input type="file" id="file-input" accept="image/*" multiple>
+    </div>
+
+    <!-- 图片放大模态框 -->
+    <div class="image-modal" id="image-modal" onclick="hideImageModal()">
+        <img src="" alt="放大的图片">
     </div>
 
     <script>
@@ -532,6 +562,7 @@
         // 自定义拖拽实现
         let isMouseDown = false;
         let startX, startY;
+        let clickTimeout = null;
 
         function handleMouseDown(e) {
             if (e.button !== 0) return; // 只处理左键
@@ -541,7 +572,12 @@
             startX = e.clientX;
             startY = e.clientY;
             
-            this.style.opacity = '0.3';
+            // 设置延迟，用于区分点击和拖拽
+            clickTimeout = setTimeout(() => {
+                if (isMouseDown) {
+                    this.style.opacity = '0.3';
+                }
+            }, 150);
             
             e.preventDefault();
         }
@@ -570,9 +606,16 @@
         function handleMouseUp(e) {
             if (!isMouseDown) return;
             
+            // 清除点击延迟
+            if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+            }
+            
+            const wasDragging = isDragging;
             isMouseDown = false;
             
-            if (isDragging) {
+            if (wasDragging) {
                 // 检查放置目标
                 const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
                 const tier = elementBelow?.closest('.tier');
@@ -586,6 +629,17 @@
                     tierContent.appendChild(draggedElement);
                 } else if (imageGallery && !deleteZone) {
                     imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                }
+            } else {
+                // 如果没有拖拽，则是点击事件，显示放大图片
+                const deltaX = Math.abs(e.clientX - startX);
+                const deltaY = Math.abs(e.clientY - startY);
+                
+                if (deltaX < 5 && deltaY < 5 && draggedElement) {
+                    const img = draggedElement.querySelector('img');
+                    if (img) {
+                        showImageModal(img.src);
+                    }
                 }
             }
             
@@ -787,10 +841,24 @@
             }
         });
 
+        // 图片放大功能
+        function showImageModal(src) {
+            const modal = document.getElementById('image-modal');
+            const modalImg = modal.querySelector('img');
+            modalImg.src = src;
+            modal.style.display = 'flex';
+        }
+
+        function hideImageModal() {
+            const modal = document.getElementById('image-modal');
+            modal.style.display = 'none';
+        }
+
         // ESC键关闭弹窗
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 hideHelp();
+                hideImageModal();
             }
         });
     </script>
