@@ -794,8 +794,8 @@
                     // 更新点赞数
                     document.getElementById('likeCount').textContent = data.like_count;
                     
-                    // 在控制台显示生成次数
-                    console.log(`曼波配音生成器已被使用 ${data.generate_count} 次`);
+                    // 更新生成次数显示
+                    document.getElementById('generateCount').textContent = `本站已生成语音${data.generate_count}次`;
                 }
             } catch (error) {
             }
@@ -892,7 +892,6 @@
                         
                         // 更新统计数据
                         await fetchStats();
-                        console.log('语音生成次数统计已更新');
                     } catch (statsError) {
                     }
                     
@@ -991,7 +990,7 @@
 
         function saveToHistory(text, audioUrl) {
             const history = getHistory();
-            const shortText = text.length > 20 ? text.substring(0, 20) + '...' : text;
+            const shortText = text.length > 10 ? text.substring(0, 10) + '...' : text;
             const record = {
                 text: shortText,
                 fullText: text,
@@ -1096,7 +1095,8 @@
     </script>
     
     <div class="footer">
-        <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding-right: 15px; border-right: 1px solid #666;">联系信息</a>
+        <span id="generateCount" style="color: #999; padding-right: 15px; border-right: 1px solid #666;">本站已生成语音0次</span>
+        <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding: 0 15px; border-right: 1px solid #666;">联系信息</a>
         <span style="color: #999; padding-left: 15px;">© 2025 大沄</span>
     </div>
 </body>
