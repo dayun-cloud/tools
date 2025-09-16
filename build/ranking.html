@@ -862,6 +862,42 @@
             }
         });
     </script>
-    <div style="text-align: center; color: #999; font-size: 12px; padding: 90px 0 8px 0; margin-top: 20px;"><a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding-right: 15px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#999'">联系信息</a><span style="color: #999; padding-left: 15px;">© 2025 大沄</span></div>
+
+    <script>
+        // 后端API地址
+        const BACKEND_URL = 'https://api-mb.dayun.cool';
+
+        // 页面加载时获取访问统计并增加计数
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // 增加访问计数
+                const response = await fetch(`${BACKEND_URL}/api/ranking-stats`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('visitCount').textContent = `本站排行榜已访问${data.ranking_visit_count}次`;
+                    } else {
+                        document.getElementById('visitCount').textContent = '本站排行榜已访问0次';
+                    }
+                } else {
+                    document.getElementById('visitCount').textContent = '本站排行榜已访问0次';
+                }
+            } catch (error) {
+                console.error('获取访问统计失败:', error);
+                document.getElementById('visitCount').textContent = '本站排行榜已访问0次';
+            }
+        });
+    </script>
+    <div style="text-align: center; color: #999; font-size: 12px; padding: 90px 0 8px 0; margin-top: 20px;">
+        <span id="visitCount" style="color: #999; padding-right: 15px; border-right: 1px solid #666;">本站排行榜已访问0次</span>
+        <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding: 0 15px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#999'">联系信息</a>
+        <span style="color: #999; padding-left: 15px;">© 2025 大沄</span>
+    </div>
 </body>
 </html>
