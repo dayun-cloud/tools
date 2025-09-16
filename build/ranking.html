@@ -881,21 +881,21 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
-                        document.getElementById('visitCount').textContent = `本站排行榜已访问${data.ranking_visit_count}次`;
+                        document.getElementById('visitCount').textContent = `访问统计：${data.ranking_visit_count}次`;
                     } else {
-                        document.getElementById('visitCount').textContent = '本站排行榜已访问0次';
+                        document.getElementById('visitCount').textContent = '访问统计：0次';
                     }
                 } else {
-                    document.getElementById('visitCount').textContent = '本站排行榜已访问0次';
+                    document.getElementById('visitCount').textContent = '访问统计：0次';
                 }
             } catch (error) {
                 console.error('获取访问统计失败:', error);
-                document.getElementById('visitCount').textContent = '本站排行榜已访问0次';
+                document.getElementById('visitCount').textContent = '访问统计：0次';
             }
         });
     </script>
     <div style="text-align: center; color: #999; font-size: 12px; padding: 90px 0 8px 0; margin-top: 20px;">
-        <span id="visitCount" style="color: #999; padding-right: 15px; border-right: 1px solid #666;">本站排行榜已访问0次</span>
+        <span id="visitCount" style="color: #999; padding-right: 15px; border-right: 1px solid #666;">访问统计：0次</span>
         <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding: 0 15px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#999'">联系信息</a>
         <span style="color: #999; padding-left: 15px;">© 2025 大沄</span>
     </div>
