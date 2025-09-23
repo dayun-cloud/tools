@@ -33,26 +33,23 @@
             background: var(--background-dark);
             color: var(--text-primary);
             min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(28, 28, 51, 0.8) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.3) 0%, transparent 20%);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            overflow-y: hidden; /* Hide vertical scrollbar */
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             width: 100%;
             max-width: 900px;
         }
 
         .logo {
             font-size: 3rem;
-            margin-bottom: 10px;
-            background: var(--gradient-primary);
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -61,7 +58,7 @@
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
-            background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -114,11 +111,11 @@
             width: 100%;
             max-width: 900px;
             background: rgba(26, 26, 46, 0.8);
-            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 60vh; /* Set a maximum height */
+            overflow-y: auto; /* Enable vertical scrolling */
         }
 
         .button-container {
@@ -171,7 +168,7 @@
         .button-icon {
             font-size: 2rem;
             margin-bottom: 10px;
-            background: var(--gradient-accent);
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -190,7 +187,7 @@
         }
 
         .footer {
-            margin-top: 30px;
+            margin-top: auto; /* Push footer to the bottom */
             text-align: center;
             color: var(--text-secondary);
             font-size: 0.9rem;
@@ -232,7 +229,7 @@
         }
 
         .container::-webkit-scrollbar-thumb {
-            background: var(--primary-color);
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
             border-radius: 10px;
         }
 
@@ -270,9 +267,9 @@
                     <i class="fas fa-chart-bar"></i>
                 </div>
                 <div class="button-text">从夯到拉排行榜</div>
-                <div class="button-desc">数据统计与分析</div>
+                <div class="button-desc">表格模板工具</div>
             </a>
-            
+
             <!-- 可以继续添加更多按钮 -->
              
             <a href="#" class="nav-button">
