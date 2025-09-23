@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工具导航站</title>
+    <link rel="icon" href="https://img.dayun.cool/_dayun/tools.ico">
+    <title>在线工具站</title>
     <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary-color: #10b981;
+            --primary-color: #87cfde;
+            --primary-dark: #65a6bc;
             --background-dark: #0f0f23;
             --card-dark: #1a1a2e;
             --card-hover: #2d2d4d;
             --text-primary: #ffffff;
             --text-secondary: #d1d5db;
-            --accent-purple: #8b5cf6;
-            --accent-blue: #3b82f6;
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
+
 
         * {
             margin: 0;
@@ -42,22 +38,30 @@
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             width: 100%;
             max-width: 900px;
         }
 
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0px 30px 0px;
+        }
+
         .logo {
-            font-size: 3rem;
+            font-size: 2.4rem;
             background: linear-gradient(90deg, #65a6bc, #87cfde);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            margin-right: 20px; /* Add some space between logo and title */
         }
 
         h1 {
             font-size: 2.5rem;
-            margin-bottom: 10px;
+            margin-bottom: 0; /* Remove bottom margin from h1 */
             background: linear-gradient(90deg, #65a6bc, #87cfde);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -109,12 +113,12 @@
 
         .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 1200px;
             background: rgba(26, 26, 46, 0.8);
             border-radius: 20px;
             padding: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            max-height: 60vh; /* Set a maximum height */
+            max-height: 70vh; /* Set a maximum height */
             overflow-y: auto; /* Enable vertical scrolling */
         }
 
@@ -129,7 +133,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 25px 15px;
+            padding: 15px 5px;
             background: var(--card-dark);
             color: var(--text-primary);
             border: none;
@@ -220,7 +224,7 @@
 
         /* 滚动条美化 */
         .container::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
 
         .container::-webkit-scrollbar-track {
@@ -229,22 +233,23 @@
         }
 
         .container::-webkit-scrollbar-thumb {
-            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            background: #515160;
             border-radius: 10px;
         }
 
         .container::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-dark);
+            background: #868695;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">
-            <i class="fas fa-tools"></i>
+        <div class="title-container">
+            <div class="logo">
+                <i class="fas fa-tools"></i>
+            </div>
+            <h1>在线工具站</h1>
         </div>
-        <h1>工具导航站</h1>
-        <p class="subtitle">快速访问所有实用工具</p>
         
         <div class="search-container">
             <input type="text" class="search-input" placeholder="搜索工具...">
@@ -267,7 +272,39 @@
                     <i class="fas fa-chart-bar"></i>
                 </div>
                 <div class="button-text">从夯到拉排行榜</div>
-                <div class="button-desc">表格模板工具</div>
+                <div class="button-desc">图表模板工具</div>
+            </a>
+
+            <a href="https://docsmall.com/image-compress" class="nav-button">
+                <div class="button-icon">
+                    <i class="fas fa-image"></i>
+                </div>
+                <div class="button-text">图片压缩工具</div>
+                <div class="button-desc">在线图片压缩（第三方）</div>
+            </a>
+            
+            <a href="https://squoosh.app/" class="nav-button">
+                <div class="button-icon">
+                    <i class="fas fa-image"></i>
+                </div>
+                <div class="button-text">图片压缩工具</div>
+                <div class="button-desc">在线图片压缩，谷歌开发的（第三方）</div>
+            </a>
+
+            <a href="https://www.icoconverter.com/" class="nav-button">
+                <div class="button-icon">
+                    <i class="fas fa-file-image"></i>
+                </div>
+                <div class="button-text">ICO图标转换工具</div>
+                <div class="button-desc">在线图标转换（第三方）</div>
+            </a>
+
+            <a href="https://snapany.com/zh" class="nav-button">
+                <div class="button-icon">
+                    <i class="fas fa-paperclip"></i>
+                </div>
+                <div class="button-text">万能视频/图片解析下载</div>
+                <div class="button-desc">多平台视频/图片提取工具（第三方）</div>
             </a>
 
             <!-- 可以继续添加更多按钮 -->
