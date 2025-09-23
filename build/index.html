@@ -1,90 +1,334 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>导航站</title>
+    <title>工具导航站</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #10b981;
+            --background-dark: #0f0f23;
+            --card-dark: #1a1a2e;
+            --card-hover: #2d2d4d;
+            --text-primary: #ffffff;
+            --text-secondary: #d1d5db;
+            --accent-purple: #8b5cf6;
+            --accent-blue: #3b82f6;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        * {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(28, 28, 51, 0.8) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.3) 0%, transparent 20%);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
-            flex-direction: column; /* Add this to stack elements vertically */
-        }
-
-        .container {
-            width: 90%; /* Increased width */
-            max-width: 900px; /* Increased max-width */
-            height: 600px; /* Increased height */
-            background-color: #1e1e1e;
-            border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-            /* Scrollbar styling for WebKit browsers */
-            scrollbar-width: thin; /* Firefox */
-            scrollbar-color: #555 #1e1e1e; /* Firefox */
         }
 
-        .container::-webkit-scrollbar {
-            width: 10px;
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 900px;
         }
 
-        .container::-webkit-scrollbar-track {
-            background: #1e1e1e;
-            border-radius: 10px;
-        }
-
-        .container::-webkit-scrollbar-thumb {
-            background-color: #555;
-            border-radius: 10px;
-            border: 2px solid #1e1e1e;
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         h1 {
-            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
             margin-bottom: 20px;
-            margin-top: 20px; /* Add some top margin for the title */
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .button-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            padding: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
         }
 
         .nav-button {
-            padding: 15px;
-            text-align: center;
-            background: linear-gradient(90deg, #65a6bc, #87cfde);
-            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px 15px;
+            background: var(--card-dark);
+            color: var(--text-primary);
             border: none;
-            border-radius: 5px;
+            border-radius: 15px;
             cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            min-height: 120px;
+        }
+
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-button:hover::before {
+            left: 100%;
         }
 
         .nav-button:hover {
-            transform: scale(1.05);
+            transform: translateY(-5px);
+            background: var(--card-hover);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .button-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .button-text {
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .button-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .button-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .logo {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .button-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+
+        /* 滚动条美化 */
+        .container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+
+        .container::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
         }
     </style>
 </head>
 <body>
-    <h1>导航站</h1>
-    <div class="container">
-        <div class="button-container">
-            <button class="nav-button" onclick="window.location.href='manbo.html'">曼波配音生成器</button>
-            <button class="nav-button" onclick="window.location.href='ranking.html'">从夯到拉排行榜</button>
-            <!-- 可以继续添加更多按钮 -->
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-tools"></i>
+        </div>
+        <h1>工具导航站</h1>
+        <p class="subtitle">快速访问所有实用工具</p>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="搜索工具...">
+            <i class="fas fa-search search-icon"></i>
         </div>
     </div>
+
+    <div class="container">
+        <div class="button-container">
+            <a href="manbo.html" class="nav-button">
+                <div class="button-icon">
+                    <i class="fas fa-microphone-alt"></i>
+                </div>
+                <div class="button-text">曼波配音生成器</div>
+                <div class="button-desc">AI语音生成工具</div>
+            </a>
+            
+            <a href="ranking.html" class="nav-button">
+                <div class="button-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="button-text">从夯到拉排行榜</div>
+                <div class="button-desc">数据统计与分析</div>
+            </a>
+            
+            <!-- 可以继续添加更多按钮 -->
+             
+            <a href="#" class="nav-button">
+                <div class="button-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="button-text">更多工具</div>
+                <div class="button-desc">敬请期待</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding: 0 15px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#999'">联系方式</a>
+        <span style="color: #999; padding-left: 15px; border-right: 1px solid #666; padding-right: 15px;">© 2025 大沄</span>
+        <span style="color: #999; padding-left: 15px;">持续更新中</span>
+    </div>
+
+    <script>
+        // 搜索功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-input');
+            const navButtons = document.querySelectorAll('.nav-button');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                navButtons.forEach(button => {
+                    const buttonText = button.querySelector('.button-text').textContent.toLowerCase();
+                    const buttonDesc = button.querySelector('.button-desc').textContent.toLowerCase();
+                    
+                    if (buttonText.includes(searchTerm) || buttonDesc.includes(searchTerm)) {
+                        button.style.display = 'flex';
+                    } else {
+                        button.style.display = 'none';
+                    }
+                });
+            });
+            
+            // 添加点击动画效果
+            navButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    
+                    // 添加点击动画
+                    this.style.transform = 'scale(0.95)';
+                    
+                    setTimeout(() => {
+                        if (href !== '#') {
+                            window.location.href = href;
+                        }
+                    }, 150);
+                });
+            });
+        });
+    </script>
 </body>
 </html>
