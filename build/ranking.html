@@ -426,10 +426,10 @@
     <div class="container">
         <div class="ranking-container">
             <div class="tier" data-tier="s">
-                <div class="tier-label" contenteditable="true" style="background-color: #e74d5a;">
+                <div class="tier-label" style="background-color: #e74d5a;">
                     <input type="color" class="color-picker" value="#ff4757" title="编辑颜色">
                     <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
-                    夯
+                    <span class="tier-name" contenteditable="true">夯</span>
                 </div>
                 <div class="tier-content"></div>
             </div>
@@ -532,16 +532,36 @@
 
         function handleFiles(e) {
             const files = Array.from(e.target.files);
-            files.forEach(file => {
+            for (const file of files) {
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
-                    reader.onload = (e) => {
-                        createImageItem(e.target.result);
+                    reader.onload = async (e) => {
+                        // 压缩图片
+                        const compressedImage = await compressImage(e.target.result);
+                        createImageItem(compressedImage);
+                        // 保存状态
+                        saveState();
                     };
                     reader.readAsDataURL(file);
                 }
-            });
+            }
         }
+
+        // 在删除图片时也触发状态保存
+        function handleImageDelete(imageElement) {
+            imageElement.remove();
+            saveState(); // 确保删除后更新存储
+        }
+
+        // 修改删除区域的处理逻辑
+        deleteZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            deleteZone.classList.remove('drag-over');
+            if (draggedElement) {
+                handleImageDelete(draggedElement);
+                draggedElement = null;
+            }
+        });
 
         function createImageItem(src) {
             const imageItem = document.createElement('div');
@@ -909,6 +929,201 @@
                 console.error('获取访问量失败:', error);
                 console.log('访问量：0次');
             }
+        });
+
+        // 图片压缩功能
+        async function compressImage(base64String) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 限制最大尺寸为 800x800，保持比例
+                    let width = img.width;
+                    let height = img.height;
+                    const maxSize = 800;
+                    
+                    if (width > maxSize || height > maxSize) {
+                        if (width > height) {
+                            height = (height / width) * maxSize;
+                            width = maxSize;
+                        } else {
+                            width = (width / height) * maxSize;
+                            height = maxSize;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // 绘制并压缩
+                    ctx.drawImage(img, 0, 0, width, height);
+                    // 0.7的质量下，视觉效果和文件大小比较平衡
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.src = base64String;
+            });
+        }
+
+        // 保存状态到localStorage
+        function saveState() {
+            const state = {
+                tiers: [],
+                unassignedImages: []
+            };
+            
+            // 保存每个tier的状态
+            document.querySelectorAll('.tier').forEach(tier => {
+                const tierLabel = tier.querySelector('.tier-label');
+                // 只获取tier-name元素的文本，如果不存在则使用tierLabel的文本，但排除按钮
+                let tierName = '';
+                const tierNameElement = tier.querySelector('.tier-name');
+                if (tierNameElement) {
+                    tierName = tierNameElement.textContent;
+                } else {
+                    // 如果没有专门的tier-name元素，则从tierLabel中提取纯文本
+                    // 克隆节点以避免修改原始DOM
+                    const tempLabel = tierLabel.cloneNode(true);
+                    // 移除所有按钮元素
+                    tempLabel.querySelectorAll('button, .tier-delete, .tier-color').forEach(el => el.remove());
+                    tierName = tempLabel.textContent.trim();
+                }
+                
+                const tierState = {
+                    name: tierName,
+                    color: tierLabel.style.backgroundColor,
+                    images: []
+                };
+                
+                // 保存tier中的图片
+                tier.querySelectorAll('.image-item img').forEach(img => {
+                    tierState.images.push(img.src);
+                });
+                
+                state.tiers.push(tierState);
+            });
+            
+            // 保存未分类的图片
+            document.querySelectorAll('.image-gallery .image-item img').forEach(img => {
+                state.unassignedImages.push(img.src);
+            });
+            
+            // 保存到localStorage
+            try {
+                localStorage.setItem('rankingState', JSON.stringify(state));
+                console.log('状态已保存');
+            } catch (e) {
+                console.error('保存状态失败:', e);
+                alert('保存失败：存储空间不足，请删除一些图片后重试');
+            }
+        }
+
+        // 从localStorage加载状态
+        async function loadState() {
+            const savedState = localStorage.getItem('rankingState');
+            if (!savedState) return;
+            
+            try {
+                const state = JSON.parse(savedState);
+                
+                // 清除现有的图片
+                document.querySelectorAll('.image-item').forEach(item => item.remove());
+                
+                // 恢复tier状态
+                const tiers = document.querySelectorAll('.tier');
+                state.tiers.forEach((tierState, index) => {
+                    if (index < tiers.length) {
+                        const tier = tiers[index];
+                        const tierLabel = tier.querySelector('.tier-label');
+                        const tierName = tier.querySelector('.tier-name');
+                        
+                        if (tierName) {
+                            tierName.textContent = tierState.name;
+                        } else {
+                            tierLabel.textContent = tierState.name;
+                        }
+                        
+                        tierLabel.style.backgroundColor = tierState.color;
+                        
+                        // 恢复图片
+                        tierState.images.forEach(imgSrc => {
+                            const imageItem = createImageItemFromSrc(imgSrc);
+                            tier.querySelector('.tier-content').appendChild(imageItem);
+                        });
+                    }
+                });
+                
+                // 恢复未分类的图片
+                const imageGallery = document.querySelector('.image-gallery');
+                const uploadBtn = imageGallery.querySelector('.upload-btn');
+                state.unassignedImages.forEach(imgSrc => {
+                    const imageItem = createImageItemFromSrc(imgSrc);
+                    imageGallery.insertBefore(imageItem, uploadBtn);
+                });
+                
+                console.log('状态已恢复');
+            } catch (e) {
+                console.error('恢复状态失败:', e);
+            }
+        }
+
+        // 从src创建图片项
+        function createImageItemFromSrc(src) {
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            imageItem.dataset.id = 'img-' + (++imageCounter);
+            imageItem.innerHTML = `<img src="${src}" alt="图片">`;
+            return imageItem;
+        }
+
+        // 修改文件处理函数，添加压缩功能
+        async function handleFiles(e) {
+            const files = Array.from(e.target.files);
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        // 压缩图片
+                        const compressedImage = await compressImage(e.target.result);
+                        createImageItem(compressedImage);
+                        // 保存状态
+                        saveState();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        // 在页面加载时恢复状态
+        window.addEventListener('load', loadState);
+
+        // 添加tier名称编辑事件监听
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('tier-name') || 
+                (e.target.classList.contains('tier-label') && e.target.getAttribute('contenteditable') === 'true')) {
+                // 当tier名称被编辑时，立即保存状态
+                saveState();
+            }
+        });
+
+        // 在状态变化时保存
+        const observer = new MutationObserver(() => {
+            saveState();
+        });
+
+        // 观察ranking-container的变化
+        observer.observe(document.querySelector('.ranking-container'), {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style']
+        });
+
+        // 观察image-gallery的变化
+        observer.observe(document.querySelector('.image-gallery'), {
+            childList: true,
+            subtree: true
         });
     </script>
     <div style="text-align: center; color: #999; font-size: 12px; padding: 90px 0 8px 0; margin-top: 20px;">
