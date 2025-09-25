@@ -763,7 +763,7 @@
 
         // 阻止图片的默认拖拽
         document.addEventListener('selectstart', (e) => {
-            if (e.target.closest('.image-item')) {
+            if (e.target && e.target.closest && e.target.closest('.image-item')) {
                 e.preventDefault();
             }
         });
