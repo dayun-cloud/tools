@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1200, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>从夯到拉排行榜</title>
     <style>
         * {
@@ -16,13 +16,16 @@
             background: #1a1a1a;
             min-height: 100vh;
             padding: 50px 20px 0px 20px;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
-            max-width: 1200px;
+            width: 1200px;
             margin: 0 auto;
             background: #2d2d2d;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            min-height: 600px;
         }
 
         .ranking-container {
@@ -79,7 +82,7 @@
 
         .color-picker {
             position: absolute;
-            left: -40px;
+            right: -40px;
             top: 50%;
             transform: translateY(-50%);
             width: 30px;
@@ -99,7 +102,7 @@
 
         .delete-tier-btn {
             position: absolute;
-            left: -75px;
+            right: -75px;
             top: 50%;
             transform: translateY(-50%);
             width: 32px;
@@ -437,7 +440,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
-            padding: 10px 0 0 0;
+            padding: 10px 0 5px 0;
             justify-content: center;
             background: #2d2d2d;
         }
@@ -489,17 +492,17 @@
             object-fit: contain;
         }
 
-        @media (max-width: 768px) {
-            .tier {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .tier-label {
-                width: 100%;
-                margin-right: 0;
-                margin-bottom: 10px;
-            }
+        /* 禁用响应式设计，保持固定比例 */
+
+        .footer {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            padding: 8px 0;
+            margin-top: auto;
+            position: relative;
+            z-index: 10;
+            background: #1a1a1a;
         }
     </style>
 </head>
@@ -515,8 +518,8 @@
                 <li>删除图片：将图片拖拽到"-"区域删除</li>
                 <li>放大图片：点击图片可放大，再次点击任意区域恢复</li>
                 <li>编辑评级：点击评级名称可编辑文字</li>
-                <li>编辑颜色：点击评级名称后左侧颜色按钮可编辑颜色</li>
-                <li>删除评级：点击评级名称后左侧删除按钮可删除评级</li>
+                <li>编辑颜色：点击评级名称后右侧颜色按钮可编辑颜色</li>
+                <li>删除评级：点击评级名称后右侧删除按钮可删除评级</li>
                 <li>创建新评级：点击底部"+添加评级"按钮创建新的评级</li>
             </ul>
             <div class="manbo-link">
@@ -574,7 +577,7 @@
              <div class="delete-zone" id="delete-zone">-</div>
              <div class="button-container">
                  <div class="add-tier-btn" onclick="addNewTier()">+ 添加评级</div>
-                 <div class="reset-tier-btn" onclick="resetRanking()">🗘 重置排行榜</div>
+                 <div class="reset-tier-btn" onclick="resetRanking()">↻ 重置排行榜</div>
              </div>
          </div>
          
@@ -687,8 +690,9 @@
             
             imageItem.innerHTML = `<img src="${src}" alt="上传的图片">`;
             
-            // 添加鼠标事件
+            // 添加鼠标和触摸事件
             imageItem.addEventListener('mousedown', handleMouseDown);
+            imageItem.addEventListener('touchstart', handleTouchStart, { passive: false });
             imageItem.addEventListener('dragstart', handleDragStart);
             imageItem.addEventListener('dragend', handleDragEnd);
             
@@ -715,40 +719,61 @@
 
         // 自定义拖拽实现
         let isMouseDown = false;
+        let isTouchStart = false;
         let startX, startY;
         let clickTimeout = null;
 
         function handleMouseDown(e) {
             if (e.button !== 0) return; // 只处理左键
-            
+
             isMouseDown = true;
             draggedElement = this;
             startX = e.clientX;
             startY = e.clientY;
-            
+
             // 设置延迟，用于区分点击和拖拽
             clickTimeout = setTimeout(() => {
                 if (isMouseDown) {
                     this.style.opacity = '0.3';
                 }
             }, 150);
-            
+
+            e.preventDefault();
+        }
+
+        // 触摸事件处理
+        function handleTouchStart(e) {
+            if (e.touches.length !== 1) return; // 只处理单指触摸
+
+            const touch = e.touches[0];
+            isTouchStart = true;
+            draggedElement = this;
+            startX = touch.clientX;
+            startY = touch.clientY;
+
+            // 设置延迟，用于区分点击和拖拽
+            clickTimeout = setTimeout(() => {
+                if (isTouchStart) {
+                    this.style.opacity = '0.3';
+                }
+            }, 150);
+
             e.preventDefault();
         }
 
         function handleMouseMove(e) {
             if (!isMouseDown || !draggedElement) return;
-            
+
             const deltaX = Math.abs(e.clientX - startX);
             const deltaY = Math.abs(e.clientY - startY);
-            
+
             // 开始拖拽的阈值
             if (deltaX > 5 || deltaY > 5) {
                 if (!isDragging) {
                     isDragging = true;
                     createDragPreview(draggedElement);
                 }
-                
+
                 if (dragPreview) {
                     dragPreview.style.display = 'block';
                     dragPreview.style.left = (e.clientX - 60) + 'px';
@@ -757,25 +782,49 @@
             }
         }
 
+        function handleTouchMove(e) {
+            if (!isTouchStart || !draggedElement) return;
+
+            const touch = e.touches[0];
+            const deltaX = Math.abs(touch.clientX - startX);
+            const deltaY = Math.abs(touch.clientY - startY);
+
+            // 开始拖拽的阈值
+            if (deltaX > 5 || deltaY > 5) {
+                if (!isDragging) {
+                    isDragging = true;
+                    createDragPreview(draggedElement);
+                }
+
+                if (dragPreview) {
+                    dragPreview.style.display = 'block';
+                    dragPreview.style.left = (touch.clientX - 60) + 'px';
+                    dragPreview.style.top = (touch.clientY - 60) + 'px';
+                }
+            }
+
+            e.preventDefault();
+        }
+
         function handleMouseUp(e) {
             if (!isMouseDown) return;
-            
+
             // 清除点击延迟
             if (clickTimeout) {
                 clearTimeout(clickTimeout);
                 clickTimeout = null;
             }
-            
+
             const wasDragging = isDragging;
             isMouseDown = false;
-            
+
             if (wasDragging) {
                 // 检查放置目标
                 const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
                 const tier = elementBelow?.closest('.tier');
                 const deleteZone = elementBelow?.closest('.delete-zone');
                 const imageGallery = elementBelow?.closest('.image-gallery');
-                
+
                 if (deleteZone) {
                     draggedElement.remove();
                 } else if (tier) {
@@ -788,7 +837,7 @@
                 // 如果没有拖拽，则是点击事件，显示放大图片
                 const deltaX = Math.abs(e.clientX - startX);
                 const deltaY = Math.abs(e.clientY - startY);
-                
+
                 if (deltaX < 5 && deltaY < 5 && draggedElement) {
                     const img = draggedElement.querySelector('img');
                     if (img) {
@@ -796,17 +845,73 @@
                     }
                 }
             }
-            
+
             // 清理
             if (draggedElement) {
                 draggedElement.style.opacity = '1';
             }
-            
+
             if (dragPreview) {
                 dragPreview.remove();
                 dragPreview = null;
             }
-            
+
+            isDragging = false;
+            draggedElement = null;
+        }
+
+        function handleTouchEnd(e) {
+            if (!isTouchStart) return;
+
+            // 清除点击延迟
+            if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+            }
+
+            const wasDragging = isDragging;
+            isTouchStart = false;
+
+            if (wasDragging) {
+                // 检查放置目标
+                const touch = e.changedTouches[0];
+                const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                const tier = elementBelow?.closest('.tier');
+                const deleteZone = elementBelow?.closest('.delete-zone');
+                const imageGallery = elementBelow?.closest('.image-gallery');
+
+                if (deleteZone) {
+                    draggedElement.remove();
+                } else if (tier) {
+                    const tierContent = tier.querySelector('.tier-content');
+                    tierContent.appendChild(draggedElement);
+                } else if (imageGallery && !deleteZone) {
+                    imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                }
+            } else {
+                // 如果没有拖拽，则是触摸事件，显示放大图片
+                const touch = e.changedTouches[0];
+                const deltaX = Math.abs(touch.clientX - startX);
+                const deltaY = Math.abs(touch.clientY - startY);
+
+                if (deltaX < 5 && deltaY < 5 && draggedElement) {
+                    const img = draggedElement.querySelector('img');
+                    if (img) {
+                        showImageModal(img.src);
+                    }
+                }
+            }
+
+            // 清理
+            if (draggedElement) {
+                draggedElement.style.opacity = '1';
+            }
+
+            if (dragPreview) {
+                dragPreview.remove();
+                dragPreview = null;
+            }
+
             isDragging = false;
             draggedElement = null;
         }
@@ -825,6 +930,8 @@
         // 绑定鼠标事件
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+        document.addEventListener('touchend', handleTouchEnd);
 
         // 为tier添加视觉反馈
         document.querySelectorAll('.tier').forEach(tier => {
@@ -850,12 +957,18 @@
 
 
 
-        // 为tier内的图片添加鼠标事件（动态添加）
+        // 为tier内的图片添加鼠标和触摸事件（动态添加）
         document.addEventListener('mousedown', function(e) {
             if (e.target.closest('.image-item')) {
                 handleMouseDown.call(e.target.closest('.image-item'), e);
             }
         });
+
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.closest('.image-item')) {
+                handleTouchStart.call(e.target.closest('.image-item'), e);
+            }
+        }, { passive: false });
 
         document.addEventListener('dragstart', function(e) {
             if (e.target.closest('.image-item')) {
@@ -1433,7 +1546,7 @@
             subtree: true
         });
     </script>
-    <div style="text-align: center; color: #999; font-size: 12px; padding: 130px 0 8px 0; margin-top: 20px;">
+    <div class="footer">
         <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding-right: 15px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#999'">联系方式</a>
         <span style="color: #999; padding-left: 15px;">© 2025 大沄</span>
     </div>
