@@ -232,18 +232,120 @@
             border: 2px dashed #666;
             color: #ccc;
             padding: 10px;
-            margin: 10px 0;
+            margin: 5px 0;
             border-radius: 8px;
             cursor: pointer;
             text-align: center;
             font-size: 14px;
             transition: all 0.3s;
+            min-width: 120px;
         }
 
         .add-tier-btn:hover {
             background: #555;
             border-color: #888;
             color: #fff;
+        }
+
+        .reset-tier-btn {
+            background: #dc3545;
+            border: 2px solid #c82333;
+            color: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .reset-tier-btn:hover {
+            background: #c82333;
+            border-color: #bd2130;
+            color: #fff;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+            order: 1001;
+        }
+
+        /* 重置确认模态框样式 */
+        .reset-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .reset-content {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+            color: white;
+            position: relative;
+            text-align: center;
+        }
+
+        .reset-content h3 {
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+
+        .reset-content p {
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .reset-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .reset-confirm-btn {
+            background: #dc3545;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .reset-confirm-btn:hover {
+            background: #c82333;
+        }
+
+        .reset-cancel-btn {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .reset-cancel-btn:hover {
+            background: #5a6268;
         }
 
         .tier-s { background: #ff4757; }
@@ -470,11 +572,26 @@
         <div class="image-gallery" id="image-gallery">
              <div class="upload-btn" onclick="document.getElementById('file-input').click()">+</div>
              <div class="delete-zone" id="delete-zone">-</div>
+             <div class="button-container">
+                 <div class="add-tier-btn" onclick="addNewTier()">+ 添加评级</div>
+                 <div class="reset-tier-btn" onclick="resetRanking()">🗘 重置排行榜</div>
+             </div>
          </div>
          
-         <div class="add-tier-btn" onclick="addNewTier()">+ 添加评级</div>
-        
+            
         <input type="file" id="file-input" accept="image/*" multiple>
+    </div>
+
+    <!-- 重置确认模态框 -->
+    <div class="reset-modal" id="reset-modal">
+        <div class="reset-content">
+            <h3>⚠️ 确认重置</h3>
+            <p>您确定要重置排行榜吗？<br>这将清除所有评级设置并移除所有图片，此操作无法撤销。</p>
+            <div class="reset-buttons">
+                <button class="reset-confirm-btn" onclick="confirmReset()">确认重置</button>
+                <button class="reset-cancel-btn" onclick="cancelReset()">取消</button>
+            </div>
+        </div>
     </div>
 
     <!-- 图片放大模态框 -->
@@ -936,6 +1053,80 @@
             if (e.key === 'Escape') {
                 hideHelp();
                 hideImageModal();
+                cancelReset();
+            }
+        });
+
+        // 重置排行榜功能
+        function resetRanking() {
+            document.getElementById('reset-modal').style.display = 'flex';
+        }
+
+        function cancelReset() {
+            document.getElementById('reset-modal').style.display = 'none';
+        }
+
+        function confirmReset() {
+            // 清除所有图片
+            document.querySelectorAll('.image-item').forEach(item => item.remove());
+
+            // 重置所有评级为默认状态
+            const defaultTiers = [
+                { name: '夯', color: '#e74d5a' },
+                { name: '顶级', color: '#ff9f43' },
+                { name: '人上人', color: '#5a61e7' },
+                { name: 'NPC', color: '#2ed573' },
+                { name: '拉完了', color: '#747d8c' }
+            ];
+
+            // 清除现有的评级
+            const rankingContainer = document.querySelector('.ranking-container');
+            rankingContainer.innerHTML = '';
+
+            // 重建默认评级
+            defaultTiers.forEach((tier, index) => {
+                const tierDiv = document.createElement('div');
+                tierDiv.className = 'tier';
+                tierDiv.dataset.tier = String.fromCharCode(115 + index); // s, t, u, v, w
+
+                tierDiv.innerHTML = `
+                    <div class="tier-label" style="background-color: ${tier.color};">
+                        <input type="color" class="color-picker" value="${tier.color}" title="编辑颜色">
+                        <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                        <span class="tier-name" contenteditable="true">${tier.name}</span>
+                    </div>
+                    <div class="tier-content"></div>
+                `;
+
+                // 为新tier添加视觉反馈
+                tierDiv.addEventListener('mouseenter', function(e) {
+                    if (isDragging) {
+                        this.classList.add('drag-over');
+                    }
+                });
+                tierDiv.addEventListener('mouseleave', function(e) {
+                    this.classList.remove('drag-over');
+                });
+
+                rankingContainer.appendChild(tierDiv);
+            });
+
+            // 清除localStorage中的状态
+            localStorage.removeItem('rankingState');
+
+            // 重置图片计数器
+            imageCounter = 0;
+
+            // 关闭确认弹窗
+            cancelReset();
+
+            console.log('排行榜已重置');
+        }
+
+        // 点击重置弹窗外部关闭
+        document.getElementById('reset-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cancelReset();
             }
         });
     </script>
@@ -1242,7 +1433,7 @@
             subtree: true
         });
     </script>
-    <div style="text-align: center; color: #999; font-size: 12px; padding: 90px 0 8px 0; margin-top: 20px;">
+    <div style="text-align: center; color: #999; font-size: 12px; padding: 130px 0 8px 0; margin-top: 20px;">
         <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding-right: 15px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#999'">联系方式</a>
         <span style="color: #999; padding-left: 15px;">© 2025 大沄</span>
     </div>
