@@ -812,39 +812,39 @@
             if (e.target.classList.contains('color-picker')) {
                 const tierLabel = e.target.closest('.tier-label');
                 const newColor = e.target.value;
-                
+
                 // 更新评级背景颜色
                 tierLabel.style.backgroundColor = newColor;
-                
+
                 // 更新颜色选择器的值，确保它与评级颜色一致
                 e.target.value = newColor;
-                
+
                 // 保存状态
                 saveState();
             }
         });
-        
-        // 确保颜色选择器显示当前评级颜色
+
+        // 在颜色选择器显示时确保显示正确颜色
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('color-picker')) {
-                // 在点击颜色选择器时，确保其值与评级颜色一致
                 const tierLabel = e.target.closest('.tier-label');
-                if (tierLabel) {
+                if (tierLabel && tierLabel.style.backgroundColor) {
                     const bgColor = tierLabel.style.backgroundColor;
-                    if (bgColor) {
-                        e.target.value = bgColor;
-                    }
+                    const hexColor = bgColor.startsWith('#') ? bgColor : rgbToHex(bgColor);
+                    e.target.value = hexColor;
                 }
             }
         });
-        
+          
         // 页面加载时确保所有颜色选择器显示正确的颜色
         document.addEventListener('DOMContentLoaded', function() {
             // 设置所有颜色选择器的值与其父级评级颜色一致
             document.querySelectorAll('.color-picker').forEach(picker => {
                 const tierLabel = picker.closest('.tier-label');
                 if (tierLabel && tierLabel.style.backgroundColor) {
-                    picker.value = tierLabel.style.backgroundColor;
+                    const bgColor = tierLabel.style.backgroundColor;
+                    const hexColor = bgColor.startsWith('#') ? bgColor : rgbToHex(bgColor);
+                    picker.value = hexColor;
                 }
             });
         });
@@ -1062,15 +1062,15 @@
         // 从localStorage加载状态
         // 辅助函数：将RGB颜色转换为十六进制
         function rgbToHex(rgb) {
-            if (!rgb || rgb === 'transparent') return '#000000'; // 默认黑色或处理透明
+            if (!rgb || rgb === 'transparent') return '#808080'; // 默认灰色而不是黑色
             const rgbMatch = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
             if (!rgbMatch) return rgb; // 如果不是rgb格式，直接返回
-            
+
             const toHex = (c) => {
                 const hex = parseInt(c).toString(16);
                 return hex.length === 1 ? '0' + hex : hex;
             };
-            
+
             return '#' + toHex(rgbMatch[1]) + toHex(rgbMatch[2]) + toHex(rgbMatch[3]);
         }
 
@@ -1133,18 +1133,20 @@
                     if (index === 0 && tiers.length > 0) {
                         const tierLabel = tier.querySelector('.tier-label');
                         const tierName = tier.querySelector('.tier-name');
-                        
+
                         if (tierName) {
                             tierName.textContent = tierState.name;
                         }
-                        
+
                         const hexColor = rgbToHex(tierState.color);
                         tierLabel.style.backgroundColor = hexColor;
-                        
+
                         // 更新颜色选择器的值，确保与评级颜色一致
                         const colorPicker = tierLabel.querySelector('.color-picker');
                         if (colorPicker) {
-                            colorPicker.value = hexColor;
+                            // 确保颜色选择器显示正确的颜色值
+                            const finalColor = hexColor || tierLabel.style.backgroundColor || '#808080';
+                            colorPicker.value = finalColor;
                         }
                     }
                     
@@ -1197,7 +1199,20 @@
         }
 
         // 在页面加载时恢复状态
-        window.addEventListener('load', loadState);
+        window.addEventListener('load', function() {
+            loadState().then(() => {
+                // 确保所有颜色选择器显示正确的颜色
+                setTimeout(() => {
+                    document.querySelectorAll('.color-picker').forEach(picker => {
+                        const tierLabel = picker.closest('.tier-label');
+                        if (tierLabel && tierLabel.style.backgroundColor) {
+                            const bgColor = tierLabel.style.backgroundColor;
+                            picker.value = bgColor.startsWith('#') ? bgColor : rgbToHex(bgColor);
+                        }
+                    });
+                }, 100);
+            });
+        });
 
         // 添加tier名称编辑事件监听
         document.addEventListener('input', function(e) {
