@@ -811,8 +811,42 @@
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('color-picker')) {
                 const tierLabel = e.target.closest('.tier-label');
-                tierLabel.style.backgroundColor = e.target.value;
+                const newColor = e.target.value;
+                
+                // 更新评级背景颜色
+                tierLabel.style.backgroundColor = newColor;
+                
+                // 更新颜色选择器的值，确保它与评级颜色一致
+                e.target.value = newColor;
+                
+                // 保存状态
+                saveState();
             }
+        });
+        
+        // 确保颜色选择器显示当前评级颜色
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('color-picker')) {
+                // 在点击颜色选择器时，确保其值与评级颜色一致
+                const tierLabel = e.target.closest('.tier-label');
+                if (tierLabel) {
+                    const bgColor = tierLabel.style.backgroundColor;
+                    if (bgColor) {
+                        e.target.value = bgColor;
+                    }
+                }
+            }
+        });
+        
+        // 页面加载时确保所有颜色选择器显示正确的颜色
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置所有颜色选择器的值与其父级评级颜色一致
+            document.querySelectorAll('.color-picker').forEach(picker => {
+                const tierLabel = picker.closest('.tier-label');
+                if (tierLabel && tierLabel.style.backgroundColor) {
+                    picker.value = tierLabel.style.backgroundColor;
+                }
+            });
         });
 
         // 添加新评级函数
@@ -845,6 +879,9 @@
             });
             
             rankingContainer.appendChild(newTier);
+            
+            // 添加新评级后保存状态
+            saveState();
         }
 
         // 删除评级函数
@@ -860,6 +897,9 @@
             
             // 删除评级
             tier.remove();
+            
+            // 删除评级后保存状态
+            saveState();
         }
 
         // 帮助弹窗函数
@@ -1027,14 +1067,54 @@
             try {
                 const state = JSON.parse(savedState);
                 
-                // 清除现有的图片
+                // 清除现有的图片和评级
                 document.querySelectorAll('.image-item').forEach(item => item.remove());
                 
-                // 恢复tier状态
+                // 保留第一个默认评级，删除其他评级
                 const tiers = document.querySelectorAll('.tier');
+                for (let i = 1; i < tiers.length; i++) {
+                    tiers[i].remove();
+                }
+                
+                // 恢复或创建tier状态
+                const rankingContainer = document.querySelector('.ranking-container');
                 state.tiers.forEach((tierState, index) => {
-                    if (index < tiers.length) {
-                        const tier = tiers[index];
+                    let tier;
+                    
+                    if (index === 0 && tiers.length > 0) {
+                        // 使用第一个默认评级
+                        tier = tiers[0];
+                    } else {
+                        // 创建新评级
+                        tier = document.createElement('div');
+                        tier.className = 'tier';
+                        tier.dataset.tier = 'tier' + index;
+                        
+                        tier.innerHTML = `
+                            <div class="tier-label" style="background-color: ${tierState.color || '#808080'};">
+                                <input type="color" class="color-picker" value="${tierState.color || '#808080'}" title="编辑颜色">
+                                <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                                <span class="tier-name" contenteditable="true">${tierState.name}</span>
+                            </div>
+                            <div class="tier-content"></div>
+                        `;
+                        
+                        // 添加拖拽相关事件监听器
+                        tier.addEventListener('mouseenter', function(e) {
+                            if (isDragging) {
+                                this.classList.add('drag-over');
+                            }
+                        });
+                        
+                        tier.addEventListener('mouseleave', function(e) {
+                            this.classList.remove('drag-over');
+                        });
+                        
+                        rankingContainer.appendChild(tier);
+                    }
+                    
+                    // 更新现有评级
+                    if (index === 0 && tiers.length > 0) {
                         const tierLabel = tier.querySelector('.tier-label');
                         const tierName = tier.querySelector('.tier-name');
                         
@@ -1046,12 +1126,18 @@
                         
                         tierLabel.style.backgroundColor = tierState.color;
                         
-                        // 恢复图片
-                        tierState.images.forEach(imgSrc => {
-                            const imageItem = createImageItemFromSrc(imgSrc);
-                            tier.querySelector('.tier-content').appendChild(imageItem);
-                        });
+                        // 更新颜色选择器的值，确保与评级颜色一致
+                        const colorPicker = tierLabel.querySelector('.color-picker');
+                        if (colorPicker) {
+                            colorPicker.value = tierState.color || '#808080';
+                        }
                     }
+                    
+                    // 恢复图片
+                    tierState.images.forEach(imgSrc => {
+                        const imageItem = createImageItemFromSrc(imgSrc);
+                        tier.querySelector('.tier-content').appendChild(imageItem);
+                    });
                 });
                 
                 // 恢复未分类的图片
