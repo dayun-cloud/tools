@@ -1060,6 +1060,20 @@
         }
 
         // 从localStorage加载状态
+        // 辅助函数：将RGB颜色转换为十六进制
+        function rgbToHex(rgb) {
+            if (!rgb || rgb === 'transparent') return '#000000'; // 默认黑色或处理透明
+            const rgbMatch = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!rgbMatch) return rgb; // 如果不是rgb格式，直接返回
+            
+            const toHex = (c) => {
+                const hex = parseInt(c).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            };
+            
+            return '#' + toHex(rgbMatch[1]) + toHex(rgbMatch[2]) + toHex(rgbMatch[3]);
+        }
+
         async function loadState() {
             const savedState = localStorage.getItem('rankingState');
             if (!savedState) return;
@@ -1090,9 +1104,11 @@
                         tier.className = 'tier';
                         tier.dataset.tier = 'tier' + index;
                         
+                        const hexColor = rgbToHex(tierState.color || '#808080');
+                        
                         tier.innerHTML = `
-                            <div class="tier-label" style="background-color: ${tierState.color || '#808080'};">
-                                <input type="color" class="color-picker" value="${tierState.color || '#808080'}" title="编辑颜色">
+                            <div class="tier-label" style="background-color: ${hexColor};">
+                                <input type="color" class="color-picker" value="${hexColor}" title="编辑颜色">
                                 <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
                                 <span class="tier-name" contenteditable="true">${tierState.name}</span>
                             </div>
@@ -1120,16 +1136,15 @@
                         
                         if (tierName) {
                             tierName.textContent = tierState.name;
-                        } else {
-                            tierLabel.textContent = tierState.name;
                         }
                         
-                        tierLabel.style.backgroundColor = tierState.color;
+                        const hexColor = rgbToHex(tierState.color);
+                        tierLabel.style.backgroundColor = hexColor;
                         
                         // 更新颜色选择器的值，确保与评级颜色一致
                         const colorPicker = tierLabel.querySelector('.color-picker');
                         if (colorPicker) {
-                            colorPicker.value = tierState.color || '#808080';
+                            colorPicker.value = hexColor;
                         }
                     }
                     
