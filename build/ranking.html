@@ -15,7 +15,8 @@
             font-family: 'Microsoft YaHei', Arial, sans-serif;
             background: #1a1a1a;
             min-height: 100vh;
-            padding: 50px 20px 0px 20px;
+            min-width: 1400px;
+            padding: 80px 20px 0px 20px;
             display: flex;
             flex-direction: column;
         }
@@ -24,7 +25,6 @@
             width: 1200px;
             margin: 0 auto;
             background: #2d2d2d;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             min-height: 600px;
         }
 
@@ -56,7 +56,15 @@
             font-size: 1.9em;
             font-weight: 900;
             color: white;
-            -webkit-text-stroke: 1px black;
+            text-shadow:
+                -1px -1px 0 #000,
+                1px -1px 0 #000,
+                -1px 1px 0 #000,
+                1px 1px 0 #000,
+                0px -1px 0 #000,
+                0px 1px 0 #000,
+                -1px 0px 0 #000,
+                1px 0px 0 #000;
             padding: 0px;
             cursor: pointer;
             outline: none;
@@ -1251,32 +1259,76 @@
         // 后端API地址
         const BACKEND_URL = 'https://api-mb.dayun.cool';
 
-        // 页面加载时获取访问统计并增加计数
+        // 页面加载时增加访问计数（24小时内只记录一次，不主动查询次数）
         window.addEventListener('DOMContentLoaded', async () => {
             try {
-                // 增加访问计数
+                // 检查是否在24小时内已经记录过访问
+                const lastVisit = localStorage.getItem('rankingLastVisit');
+                const now = new Date().getTime();
+                const twentyFourHours = 24 * 60 * 60 * 1000; // 24小时的毫秒数
+
+                let shouldRecord = false;
+
+                if (!lastVisit) {
+                    // 第一次访问，需要记录
+                    shouldRecord = true;
+                } else {
+                    const lastVisitTime = parseInt(lastVisit);
+                    if (now - lastVisitTime > twentyFourHours) {
+                        // 距离上次访问已超过24小时，需要记录
+                        shouldRecord = true;
+                    }
+                }
+
+                if (shouldRecord) {
+                    // 增加访问计数（不获取返回值，只发送请求）
+                    fetch(`${BACKEND_URL}/api/ranking-stats`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    // 记录本次访问时间
+                    localStorage.setItem('rankingLastVisit', now.toString());
+                }
+            } catch (error) {
+                // 静默处理错误，不显示日志
+            }
+        });
+
+        // 手动查询访问次数的函数
+        async function getVisitCount() {
+            try {
                 const response = await fetch(`${BACKEND_URL}/api/ranking-stats`, {
-                    method: 'POST',
+                    method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
-                        console.log(`访问量：${data.ranking_visit_count}次`);
+                        console.log(`📊 当前访问量：${data.ranking_visit_count}次`);
+                        return data.ranking_visit_count;
                     } else {
-                        console.log('访问量：0次');
+                        console.log('❌ 获取访问量失败');
+                        return 0;
                     }
                 } else {
-                    console.log('访问量：0次');
+                    console.log('❌ 获取访问量失败');
+                    return 0;
                 }
             } catch (error) {
-                console.error('获取访问量失败:', error);
-                console.log('访问量：0次');
+                console.error('❌ 获取访问量失败:', error);
+                return 0;
             }
-        });
+        }
+
+        // 在控制台直接调用以下任一命令即可查询访问次数
+        window.getVisitCount = getVisitCount;
+        window.vc = getVisitCount;
 
         // 图片压缩功能
         async function compressImage(base64String) {
