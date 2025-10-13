@@ -557,7 +557,7 @@
             </ul>
             <div class="toggle-container">
                 <label>
-                    <input type="checkbox" id="show-image-names-toggle" checked>
+                    <input type="checkbox" id="show-image-names-toggle">
                     <span class="toggle-label">显示图片名称</span>
                 </label>
             </div>
@@ -749,6 +749,11 @@
                 <img src="${src}" alt="上传的图片">
                 <div class="image-name-overlay">${displayName}</div>
             `;
+            
+            // 应用当前的图片名称显示设置
+            const showImageNames = localStorage.getItem('showImageNames') === 'true';
+            const nameOverlay = imageItem.querySelector('.image-name-overlay');
+            nameOverlay.style.display = showImageNames ? 'block' : 'none';
             
             // 添加鼠标和触摸事件
             imageItem.addEventListener('mousedown', handleMouseDown);
@@ -1195,10 +1200,18 @@
         // 帮助弹窗函数
         function showHelp() {
             document.getElementById('help-modal').style.display = 'flex';
+            // 恢复开关状态
+            const showImageNames = localStorage.getItem('showImageNames') !== 'false';
+            document.getElementById('show-image-names-toggle').checked = showImageNames;
         }
 
         function hideHelp() {
             document.getElementById('help-modal').style.display = 'none';
+            // 保存开关状态
+            const showImageNames = document.getElementById('show-image-names-toggle').checked;
+            localStorage.setItem('showImageNames', showImageNames);
+            // 更新图片名称显示状态
+            updateImageNamesVisibility(showImageNames);
         }
 
         // 点击弹窗外部关闭
@@ -1207,6 +1220,14 @@
                 hideHelp();
             }
         });
+
+        // 更新图片名称显示状态
+        function updateImageNamesVisibility(show) {
+            const imageNameOverlays = document.querySelectorAll('.image-name-overlay');
+            imageNameOverlays.forEach(overlay => {
+                overlay.style.display = show ? 'block' : 'none';
+            });
+        }
 
         // 图片放大功能
         function showImageModal(src) {
@@ -1467,6 +1488,14 @@
                 });
             });
             
+            // 保存图片名称显示设置
+            let showImageNames = localStorage.getItem('showImageNames');
+            if (showImageNames === null) {
+                showImageNames = 'false';
+                localStorage.setItem('showImageNames', 'false');
+            }
+            state.showImageNames = showImageNames === 'true';
+            
             // 保存到localStorage
             try {
                 localStorage.setItem('rankingState', JSON.stringify(state));
@@ -1498,6 +1527,11 @@
             
             try {
                 const state = JSON.parse(savedState);
+                
+                // 恢复图片名称显示设置（仅在首次加载时设置默认值）
+                if (localStorage.getItem('showImageNames') === null) {
+                    localStorage.setItem('showImageNames', 'false');
+                }
                 
                 // 清除现有的图片和评级
                 document.querySelectorAll('.image-item').forEach(item => item.remove());
@@ -1630,6 +1664,12 @@
                 <img src="${src}" alt="图片">
                 <div class="image-name-overlay">${displayName}</div>
             `;
+            
+            // 应用当前的图片名称显示设置
+            const showImageNames = localStorage.getItem('showImageNames') === 'true';
+            const nameOverlay = imageItem.querySelector('.image-name-overlay');
+            nameOverlay.style.display = showImageNames ? 'block' : 'none';
+            
             return imageItem;
         }
 
@@ -1664,6 +1704,13 @@
                         }
                     });
                 }, 100);
+                // 初始化图片名称显示状态（默认关闭）
+                let showImageNames = localStorage.getItem('showImageNames');
+                if (showImageNames === null) {
+                    showImageNames = 'false';
+                    localStorage.setItem('showImageNames', 'false');
+                }
+                updateImageNamesVisibility(showImageNames === 'true');
             });
         });
 
