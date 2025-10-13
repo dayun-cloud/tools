@@ -445,6 +445,28 @@
             object-fit: cover;
         }
 
+        .image-name-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 4px 6px;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .image-item:hover .image-name-overlay {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
 
 
         .image-gallery {
@@ -533,6 +555,12 @@
                 <li>删除评级：点击评级名称后右侧删除按钮可删除评级</li>
                 <li>创建新评级：点击底部"+添加评级"按钮创建新的评级</li>
             </ul>
+            <div class="toggle-container">
+                <label>
+                    <input type="checkbox" id="show-image-names-toggle" checked>
+                    <span class="toggle-label">显示图片名称</span>
+                </label>
+            </div>
             <div class="manbo-link">
                 <p><a href="manbo.html" style="margin-right: 30px;" target="_blank">🎵 前往曼波配音生成器</a><a href="/">🏠 回到主站</a></p>
             </div>
@@ -669,7 +697,7 @@
                     reader.onload = async (e) => {
                         // 压缩图片
                         const compressedImage = await compressImage(e.target.result);
-                        createImageItem(compressedImage);
+                        createImageItem(compressedImage, file.name);
                         // 保存状态
                         saveState();
                     };
@@ -694,12 +722,33 @@
             }
         });
 
-        function createImageItem(src) {
+        function createImageItem(src, filename = '') {
             const imageItem = document.createElement('div');
             imageItem.className = 'image-item';
             imageItem.dataset.id = 'img-' + (++imageCounter);
             
-            imageItem.innerHTML = `<img src="${src}" alt="上传的图片">`;
+            // 提取文件名（如果src是base64，则使用默认名称）
+            let displayName = filename;
+            if (!displayName && src.startsWith('data:')) {
+                displayName = '图片';
+            } else if (!displayName) {
+                // 从URL中提取文件名
+                const urlParts = src.split('/');
+                displayName = urlParts[urlParts.length - 1] || '图片';
+            }
+            
+            // 去掉文件后缀名
+            if (displayName && displayName !== '图片') {
+                const lastDotIndex = displayName.lastIndexOf('.');
+                if (lastDotIndex > 0) {
+                    displayName = displayName.substring(0, lastDotIndex);
+                }
+            }
+            
+            imageItem.innerHTML = `
+                <img src="${src}" alt="上传的图片">
+                <div class="image-name-overlay">${displayName}</div>
+            `;
             
             // 添加鼠标和触摸事件
             imageItem.addEventListener('mousedown', handleMouseDown);
@@ -1396,16 +1445,26 @@
                 };
                 
                 // 保存tier中的图片
-                tier.querySelectorAll('.image-item img').forEach(img => {
-                    tierState.images.push(img.src);
+                tier.querySelectorAll('.image-item').forEach(imageItem => {
+                    const img = imageItem.querySelector('img');
+                    const nameOverlay = imageItem.querySelector('.image-name-overlay');
+                    tierState.images.push({
+                        src: img.src,
+                        name: nameOverlay ? nameOverlay.textContent : '图片'
+                    });
                 });
                 
                 state.tiers.push(tierState);
             });
             
             // 保存未分类的图片
-            document.querySelectorAll('.image-gallery .image-item img').forEach(img => {
-                state.unassignedImages.push(img.src);
+            document.querySelectorAll('.image-gallery .image-item').forEach(imageItem => {
+                const img = imageItem.querySelector('img');
+                const nameOverlay = imageItem.querySelector('.image-name-overlay');
+                state.unassignedImages.push({
+                    src: img.src,
+                    name: nameOverlay ? nameOverlay.textContent : '图片'
+                });
             });
             
             // 保存到localStorage
@@ -1510,8 +1569,13 @@
                     }
                     
                     // 恢复图片
-                    tierState.images.forEach(imgSrc => {
-                        const imageItem = createImageItemFromSrc(imgSrc);
+                    tierState.images.forEach(imgData => {
+                        const imageItem = createImageItemFromSrc(imgData.src);
+                        // 更新图片名
+                        const nameOverlay = imageItem.querySelector('.image-name-overlay');
+                        if (nameOverlay && imgData.name) {
+                            nameOverlay.textContent = imgData.name;
+                        }
                         tier.querySelector('.tier-content').appendChild(imageItem);
                     });
                 });
@@ -1519,8 +1583,13 @@
                 // 恢复未分类的图片
                 const imageGallery = document.querySelector('.image-gallery');
                 const uploadBtn = imageGallery.querySelector('.upload-btn');
-                state.unassignedImages.forEach(imgSrc => {
-                    const imageItem = createImageItemFromSrc(imgSrc);
+                state.unassignedImages.forEach(imgData => {
+                    const imageItem = createImageItemFromSrc(imgData.src);
+                    // 更新图片名
+                    const nameOverlay = imageItem.querySelector('.image-name-overlay');
+                    if (nameOverlay && imgData.name) {
+                        nameOverlay.textContent = imgData.name;
+                    }
                     imageGallery.insertBefore(imageItem, uploadBtn);
                 });
                 
@@ -1535,7 +1604,32 @@
             const imageItem = document.createElement('div');
             imageItem.className = 'image-item';
             imageItem.dataset.id = 'img-' + (++imageCounter);
-            imageItem.innerHTML = `<img src="${src}" alt="图片">`;
+            
+            // 从URL中提取文件名
+            let displayName = '图片';
+            if (!src.startsWith('data:')) {
+                const urlParts = src.split('/');
+                const fileName = urlParts[urlParts.length - 1] || '图片';
+                // 解码URL编码的文件名
+                try {
+                    displayName = decodeURIComponent(fileName);
+                } catch (e) {
+                    displayName = fileName;
+                }
+                
+                // 去掉文件后缀名
+                if (displayName && displayName !== '图片') {
+                    const lastDotIndex = displayName.lastIndexOf('.');
+                    if (lastDotIndex > 0) {
+                        displayName = displayName.substring(0, lastDotIndex);
+                    }
+                }
+            }
+            
+            imageItem.innerHTML = `
+                <img src="${src}" alt="图片">
+                <div class="image-name-overlay">${displayName}</div>
+            `;
             return imageItem;
         }
 
@@ -1548,7 +1642,7 @@
                     reader.onload = async (e) => {
                         // 压缩图片
                         const compressedImage = await compressImage(e.target.result);
-                        createImageItem(compressedImage);
+                        createImageItem(compressedImage, file.name);
                         // 保存状态
                         saveState();
                     };
