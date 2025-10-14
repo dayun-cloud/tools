@@ -1289,12 +1289,64 @@
                 link.download = '排行榜截图_' + new Date().toISOString().slice(0,19).replace(/:/g,'-') + '.png';
                 link.href = canvas.toDataURL('image/png');
                 
-                // 移动端兼容性处理
+                // 移动端兼容性处理 - 多种方案
                 if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                    // 移动端：在新窗口打开图片
-                    const newWindow = window.open();
-                    newWindow.document.write('<img src="' + link.href + '" style="max-width:100%;height:auto;">');
-                    newWindow.document.close();
+                    // 方案1: 尝试直接下载
+                    try {
+                        link.click();
+                    } catch (e) {
+                        // 方案2: 在新窗口打开图片
+                        try {
+                            const newWindow = window.open();
+                            if (newWindow) {
+                                newWindow.document.write('<img src="' + link.href + '" style="max-width:100%;height:auto;">');
+                                newWindow.document.close();
+                            } else {
+                                // 方案3: 显示图片在页面中
+                                const img = document.createElement('img');
+                                img.src = link.href;
+                                img.style.maxWidth = '100%';
+                                img.style.height = 'auto';
+                                img.style.margin = '20px auto';
+                                img.style.display = 'block';
+                                
+                                const container = document.createElement('div');
+                                container.style.position = 'fixed';
+                                container.style.top = '0';
+                                container.style.left = '0';
+                                container.style.width = '100%';
+                                container.style.height = '100%';
+                                container.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                                container.style.zIndex = '9999';
+                                container.style.display = 'flex';
+                                container.style.alignItems = 'center';
+                                container.style.justifyContent = 'center';
+                                container.style.flexDirection = 'column';
+                                
+                                const closeBtn = document.createElement('button');
+                                closeBtn.textContent = '关闭';
+                                closeBtn.style.marginTop = '20px';
+                                closeBtn.style.padding = '10px 20px';
+                                closeBtn.style.backgroundColor = '#5a61e7';
+                                closeBtn.style.color = 'white';
+                                closeBtn.style.border = 'none';
+                                closeBtn.style.borderRadius = '5px';
+                                closeBtn.style.cursor = 'pointer';
+                                closeBtn.onclick = function() {
+                                    document.body.removeChild(container);
+                                };
+                                
+                                container.appendChild(img);
+                                container.appendChild(closeBtn);
+                                document.body.appendChild(container);
+                                
+                                alert('图片已生成，请长按图片保存到相册');
+                            }
+                        } catch (e2) {
+                            // 方案4: 显示数据URL让用户手动保存
+                            alert('图片已生成，请复制以下链接并在浏览器中打开：\n\n' + link.href);
+                        }
+                    }
                 } else {
                     // 桌面端：直接下载
                     link.click();
