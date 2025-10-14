@@ -1291,6 +1291,14 @@
                 const blob = dataURLToBlob(imageDataUrl);
                 const blobUrl = URL.createObjectURL(blob);
                 
+                // 创建下载链接并触发下载
+                const downloadLink = document.createElement('a');
+                downloadLink.href = blobUrl;
+                downloadLink.download = '从夯到拉排行榜.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
                 // 在新窗口打开Blob URL
                 window.open(blobUrl, '_blank');
                 
