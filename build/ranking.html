@@ -1278,16 +1278,30 @@
                 scale: 2, // 提高图片质量
                 useCORS: true,
                 allowTaint: true,
-                backgroundColor: '#1a1a1a'
+                backgroundColor: '#1a1a1a',
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: document.documentElement.scrollWidth,
+                windowHeight: document.documentElement.scrollHeight
             }).then(function(canvas) {
                 // 创建下载链接
                 const link = document.createElement('a');
                 link.download = '排行榜截图_' + new Date().toISOString().slice(0,19).replace(/:/g,'-') + '.png';
                 link.href = canvas.toDataURL('image/png');
-                link.click();
+                
+                // 移动端兼容性处理
+                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                    // 移动端：在新窗口打开图片
+                    const newWindow = window.open();
+                    newWindow.document.write('<img src="' + link.href + '" style="max-width:100%;height:auto;">');
+                    newWindow.document.close();
+                } else {
+                    // 桌面端：直接下载
+                    link.click();
+                }
             }).catch(function(error) {
                 console.error('截图失败:', error);
-                alert('截图失败，请重试');
+                alert('截图失败，请重试。错误信息：' + error.message);
             });
         }
 
