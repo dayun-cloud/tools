@@ -1284,71 +1284,36 @@
                 windowWidth: document.documentElement.scrollWidth,
                 windowHeight: document.documentElement.scrollHeight
             }).then(function(canvas) {
-                // 创建下载链接
-                const link = document.createElement('a');
-                link.download = '排行榜截图_' + new Date().toISOString().slice(0,19).replace(/:/g,'-') + '.png';
-                link.href = canvas.toDataURL('image/png');
+                // 获取Base64图片数据
+                const imageDataUrl = canvas.toDataURL('image/png');
                 
-                // 将Base64转换为Blob URL以缩短URL长度
-                 const base64Data = canvas.toDataURL('image/png');
-                 const blob = dataURLToBlob(base64Data);
-                 const blobUrl = URL.createObjectURL(blob);
-                 
-                 // 统一处理：尝试直接下载并自动复制URL
-                 try {
-                     // 尝试直接下载
-                     link.href = blobUrl;
-                     link.click();
-                 } catch (e) {
-                     // 下载失败时忽略错误
-                 }
-                 
-                 // 自动复制URL到剪贴板（使用更短的Blob URL）
-                 try {
-                     navigator.clipboard.writeText(blobUrl).then(function() {
-                         // 复制成功
-                     }, function(err) {
-                         // 复制失败时使用备用方法
-                         const textArea = document.createElement('textarea');
-                         textArea.value = blobUrl;
-                         document.body.appendChild(textArea);
-                         textArea.select();
-                         document.execCommand('copy');
-                         document.body.removeChild(textArea);
-                     });
-                 } catch (e) {
-                     // 备用复制方法
-                     const textArea = document.createElement('textarea');
-                     textArea.value = blobUrl;
-                     document.body.appendChild(textArea);
-                     textArea.select();
-                     document.execCommand('copy');
-                     document.body.removeChild(textArea);
-                 }
-                 
-                 // 显示统一提示
-                 alert('已复制图片URL，正在尝试保存图片，如果无效请在浏览器地址栏粘贴URL手动保存');
-                 
-                 // 浏览器关闭时会自动清理Blob URL，无需手动清理
+                // 将Base64转换为Blob
+                const blob = dataURLToBlob(imageDataUrl);
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // 在新窗口打开Blob URL
+                window.open(blobUrl, '_blank');
+                
             }).catch(function(error) {
                 console.error('截图失败:', error);
                 alert('截图失败，请重试。错误信息：' + error.message);
             });
         }
 
-        // Base64转Blob的辅助函数
+
+            
+
+        // Base64转Blob辅助函数
         function dataURLToBlob(dataURL) {
-            const parts = dataURL.split(';base64,');
-            const contentType = parts[0].split(':')[1];
-            const raw = window.atob(parts[1]);
-            const rawLength = raw.length;
-            const uInt8Array = new Uint8Array(rawLength);
-            
-            for (let i = 0; i < rawLength; ++i) {
-                uInt8Array[i] = raw.charCodeAt(i);
+            const parts = dataURL.split(',');
+            const mime = parts[0].match(/:(.*?);/)[1];
+            const bstr = atob(parts[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
             }
-            
-            return new Blob([uInt8Array], { type: contentType });
+            return new Blob([u8arr], { type: mime });
         }
 
         // ESC键关闭弹窗
