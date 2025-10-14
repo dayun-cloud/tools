@@ -1289,14 +1289,39 @@
                 link.download = '排行榜截图_' + new Date().toISOString().slice(0,19).replace(/:/g,'-') + '.png';
                 link.href = canvas.toDataURL('image/png');
                 
-                // 移动端显示URL，电脑端直接下载
-                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                    // 移动端：显示数据URL让用户手动保存
-                    alert('图片已生成，请复制以下链接并在浏览器中打开：\n\n' + link.href);
-                } else {
-                    // 桌面端：直接下载
+                // 统一处理：尝试直接下载并自动复制URL
+                try {
+                    // 尝试直接下载
                     link.click();
+                } catch (e) {
+                    // 下载失败时忽略错误
                 }
+                
+                // 自动复制URL到剪贴板
+                try {
+                    navigator.clipboard.writeText(link.href).then(function() {
+                        // 复制成功
+                    }, function(err) {
+                        // 复制失败时使用备用方法
+                        const textArea = document.createElement('textarea');
+                        textArea.value = link.href;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                    });
+                } catch (e) {
+                    // 备用复制方法
+                    const textArea = document.createElement('textarea');
+                    textArea.value = link.href;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+                
+                // 显示统一提示
+                alert('已复制图片URL，正在尝试保存图片，如果无效请在浏览器地址栏粘贴URL手动保存');
             }).catch(function(error) {
                 console.error('截图失败:', error);
                 alert('截图失败，请重试。错误信息：' + error.message);
