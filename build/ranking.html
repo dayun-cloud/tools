@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1200, initial-scale=1.0">
     <title>从夯到拉排行榜</title>
+    <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -239,6 +240,28 @@
 
         .close-help:hover {
             color: white;
+        }
+
+        .save-image-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .save-image-btn {
+            background: #444;
+            border: 2px solid #666;
+            color: #ccc;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .save-image-btn:hover {
+            background: #555;
+            border-color: #007bff;
+            color: #007bff;
         }
 
         .add-tier-btn {
@@ -560,6 +583,9 @@
                     <input type="checkbox" id="show-image-names-toggle">
                     <span class="toggle-label">显示图片名称</span>
                 </label>
+            </div>
+            <div class="save-image-container">
+                <button class="save-image-btn" onclick="saveAsImage()">💾 保存为图片</button>
             </div>
             <div class="manbo-link">
                 <p><a href="manbo.html" style="margin-right: 30px;" target="_blank">🎵 前往曼波配音生成器</a><a href="/">🏠 回到主站</a></p>
@@ -1240,6 +1266,29 @@
         function hideImageModal() {
             const modal = document.getElementById('image-modal');
             modal.style.display = 'none';
+        }
+
+        // 保存为图片功能
+        function saveAsImage() {
+            // 隐藏帮助模态框
+            hideHelp();
+            
+            // 使用html2canvas库截图
+            html2canvas(document.querySelector('.ranking-container'), {
+                scale: 2, // 提高图片质量
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#1a1a1a'
+            }).then(function(canvas) {
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = '排行榜截图_' + new Date().toISOString().slice(0,19).replace(/:/g,'-') + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(function(error) {
+                console.error('截图失败:', error);
+                alert('截图失败，请重试');
+            });
         }
 
         // ESC键关闭弹窗
