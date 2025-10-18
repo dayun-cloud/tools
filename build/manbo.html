@@ -10,57 +10,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
-        .welcome-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            color: #e0e0e0;
-            padding: 10px 100px 10px 50px;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            z-index: 100;
-        }
-        
-        .welcome-text {
-            font-weight: 600;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-        
-        .like-container {
-            display: flex;
-            align-items: center;
-            margin-left: 10px;
-        }
-        
-        .like-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 20px;
-            transition: transform 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 5px;
-        }
-        
-        .like-btn:hover {
-            transform: scale(1.2);
-        }
-        
-        .like-btn.liked .heart-icon {
-            color: #ff4d4d;
-        }
-        
-        .like-count {
-            margin-left: 5px;
-            font-weight: bold;
-            font-size: 16px;
-        }
 
         html, body {
             height: 100%;
@@ -595,17 +544,7 @@
     </style>
 </head>
 <body>
-    <div class="welcome-banner">
-        <div class="welcome-text">欢迎使用曼波配音生成器，觉得不错点个赞吧~(≧∀≦)</div>
-        <div class="like-container">
-            <button class="like-btn" id="likeBtn" onclick="likeAction()">
-                <span class="heart-icon">❤️</span>
-            </button>
-            <span class="like-count" id="likeCount">0</span>
-        </div>
-    </div>
     <button class="help-btn" onclick="showHelp()">?</button>
-    
     <div class="help-modal" id="help-modal">
         <div class="help-content">
             <button class="close-help" onclick="hideHelp()">×</button>
@@ -678,112 +617,14 @@
         // 后端API地址 - 部署后需要修改为实际的Cloudflare Workers地址
         const BACKEND_URL = 'https://api-mb.dayun.cool';
         
-        // 点赞相关变量
-        const DAILY_SEND_LIMIT = 5;
-        let dailySendCount = 0;
-        let pendingLikes = 0;
-        let lastLikeTime = 0;
-        let sendTimeout = null;
-        let isShowingWarning = false;
-        let isLimitReached = false;
-        
         // 页面加载时获取统计数据
         window.addEventListener('DOMContentLoaded', async () => {
             try {
                 await fetchStats();
-                // 初始化每日发送计数
-                initDailySendCount();
             } catch (error) {
             }
         });
-        
-        // 初始化每日发送计数
-        function initDailySendCount() {
-            const today = new Date().toDateString();
-            const lastDate = localStorage.getItem('lastSendDate');
-            
-            if (lastDate !== today) {
-                // 新的一天，重置计数
-                dailySendCount = 0;
-                isLimitReached = false;
-                localStorage.setItem('lastSendDate', today);
-                localStorage.setItem('sendCount', '0');
-            } else {
-                // 同一天，恢复计数
-                dailySendCount = parseInt(localStorage.getItem('sendCount')) || 0;
-                isLimitReached = dailySendCount >= DAILY_SEND_LIMIT;
-            }
-        }
-        
-        // 显示频率警告
-        function showFrequencyWarning() {
-            if (isShowingWarning) return;
-            
-            isShowingWarning = true;
-            const likeBtn = document.getElementById('likeBtn');
-            const warning = document.createElement('div');
-            warning.textContent = '太频繁了~歇一会吧~';
-            warning.style.cssText = `
-                position: absolute;
-                top: 100%;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #ff6b6b;
-                color: white;
-                padding: 8px 12px;
-                border-radius: 6px;
-                font-size: 12px;
-                white-space: nowrap;
-                z-index: 1000;
-                margin-top: 5px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            `;
-            
-            likeBtn.parentElement.style.position = 'relative';
-            likeBtn.parentElement.appendChild(warning);
-            
-            setTimeout(() => {
-                if (warning.parentElement) {
-                    warning.parentElement.removeChild(warning);
-                }
-                isShowingWarning = false;
-            }, 3000);
-        }
-        
-        // 发送累积的点赞到后端
-        async function sendPendingLikes() {
-            if (pendingLikes === 0) return;
-            
-            if (dailySendCount >= DAILY_SEND_LIMIT) {
-                isLimitReached = true; // 标记已达到限制
-                showFrequencyWarning();
-                pendingLikes = 0; // 清空待发送的点赞
-                return;
-            }
-            
-            const likesToSend = pendingLikes;
-            pendingLikes = 0;
-            dailySendCount++;
-            
-            // 保存到本地存储
-            localStorage.setItem('sendCount', dailySendCount.toString());
-            
-            try {
-                await fetch(`${BACKEND_URL}/api/like`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ count: likesToSend })
-                });
-            } catch (error) {
-                // 静默处理错误
-            }
-            
-            // 重置点击时间，确保下次点击被正确识别
-            lastLikeTime = 0;
-        }
-        
+  
         // 获取统计数据
         async function fetchStats() {
             try {
@@ -791,71 +632,13 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // 更新点赞数
-                    document.getElementById('likeCount').textContent = data.like_count;
-                    
-                    // 更新生成次数显示
                     document.getElementById('generateCount').textContent = `本站已生成语音${data.generate_count}次`;
                 }
             } catch (error) {
+                // 静默处理错误
             }
         }
         
-        // 点赞功能
-        function likeAction() {
-            const likeBtn = document.getElementById('likeBtn');
-            const likeCount = document.getElementById('likeCount');
-            const currentTime = Date.now();
-            
-            // 检查是否已达到发送限制或即将达到限制
-            if (isLimitReached || dailySendCount >= DAILY_SEND_LIMIT) {
-                // 达到限制后不更新UI，只显示警告
-                if (!isShowingWarning) {
-                    showFrequencyWarning();
-                }
-                if (!isLimitReached) {
-                    isLimitReached = true;
-                }
-                return;
-            }
-            
-            // 立即更新UI
-            const currentCount = parseInt(likeCount.textContent) || 0;
-            likeCount.textContent = currentCount + 1;
-            pendingLikes++;
-            
-            // 添加点赞动画效果
-            likeBtn.classList.add('liked');
-            likeBtn.style.transform = 'scale(1.3)';
-            
-            setTimeout(() => {
-                likeBtn.style.transform = 'scale(1)';
-            }, 300);
-            
-            // 检查点击频率
-            const timeSinceLastClick = lastLikeTime === 0 ? 0 : currentTime - lastLikeTime;
-            const isFirstClick = lastLikeTime === 0;
-            lastLikeTime = currentTime;
-            
-            // 清除之前的定时器
-            if (sendTimeout) {
-                clearTimeout(sendTimeout);
-            }
-            
-            // 如果是首次点击或点击频率超过每秒1次，延迟发送
-            if (isFirstClick || timeSinceLastClick < 1000) {
-                // 首次点击或高频点击，设置延迟发送
-                sendTimeout = setTimeout(() => {
-                    sendPendingLikes();
-                }, 1000);
-            } else {
-                // 正常频率，立即发送
-                sendTimeout = setTimeout(() => {
-                    sendPendingLikes();
-                }, 100);
-            }
-        }
-
         async function generateSpeech() {
             const text = document.getElementById('textInput').value.trim();
             
@@ -873,7 +656,6 @@
             generateBtn.disabled = true;
 
             try {
-                // 直接调用原始API
                 const encodedText = encodeURIComponent(text);
                 const apiUrl = `https://api.milorapart.top/apis/mbAIsc?text=${encodedText}`;
                 
