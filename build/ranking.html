@@ -670,6 +670,7 @@
     <script>
         let draggedElement = null;
         let imageCounter = 0;
+        let showImageNamesSetting = false; // 仅使用 IndexedDB 管理该状态
 
         // 文件上传处理
         const fileInput = document.getElementById('file-input');
@@ -776,10 +777,9 @@
                 <div class="image-name-overlay">${displayName}</div>
             `;
             
-            // 应用当前的图片名称显示设置
-            const showImageNames = localStorage.getItem('showImageNames') === 'true';
+            // 应用当前的图片名称显示设置（来自内存变量）
             const nameOverlay = imageItem.querySelector('.image-name-overlay');
-            nameOverlay.style.display = showImageNames ? 'block' : 'none';
+            nameOverlay.style.display = showImageNamesSetting ? 'block' : 'none';
             
             // 添加鼠标和触摸事件
             imageItem.addEventListener('mousedown', handleMouseDown);
@@ -1226,18 +1226,17 @@
         // 帮助弹窗函数
         function showHelp() {
             document.getElementById('help-modal').style.display = 'flex';
-            // 恢复开关状态
-            const showImageNames = localStorage.getItem('showImageNames') !== 'false';
-            document.getElementById('show-image-names-toggle').checked = showImageNames;
+            // 恢复开关状态（仅从内存变量）
+            document.getElementById('show-image-names-toggle').checked = !!showImageNamesSetting;
         }
 
         function hideHelp() {
             document.getElementById('help-modal').style.display = 'none';
-            // 保存开关状态
-            const showImageNames = document.getElementById('show-image-names-toggle').checked;
-            localStorage.setItem('showImageNames', showImageNames);
-            // 更新图片名称显示状态
-            updateImageNamesVisibility(showImageNames);
+            // 保存开关状态（内存+IndexedDB）
+            showImageNamesSetting = document.getElementById('show-image-names-toggle').checked;
+            updateImageNamesVisibility(showImageNamesSetting);
+            // 统一通过 saveState 持久化完整状态
+            try { saveState(); } catch (e) { console.error('保存状态失败:', e); }
         }
 
         // 点击弹窗外部关闭
@@ -1387,8 +1386,7 @@
                 rankingContainer.appendChild(tierDiv);
             });
 
-            // 清除localStorage中的状态
-            localStorage.removeItem('rankingState');
+            // IndexedDB 模式下，无需处理 localStorage
 
             // 重置图片计数器
             imageCounter = 0;
@@ -1397,6 +1395,8 @@
             cancelReset();
 
             console.log('排行榜已重置');
+            // 重置后立即保存当前空状态
+            try { saveState(); } catch (e) { console.error('保存重置状态失败:', e); }
         }
 
         // 点击重置弹窗外部关闭
@@ -1444,7 +1444,39 @@
             });
         }
 
-        // 保存状态到localStorage
+        // IndexedDB数据库相关函数
+        let db = null;
+        const DB_NAME = 'RankingAppDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'rankingState';
+
+        // 初始化IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => {
+                    console.error('IndexedDB初始化失败:', request.error);
+                    reject(request.error);
+                };
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('IndexedDB连接成功');
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        console.log('创建对象存储:', STORE_NAME);
+                    }
+                };
+            });
+        }
+
+        // 保存状态到IndexedDB
         function saveState() {
             const state = {
                 tiers: [],
@@ -1497,25 +1529,38 @@
                 });
             });
             
-            // 保存图片名称显示设置
-            let showImageNames = localStorage.getItem('showImageNames');
-            if (showImageNames === null) {
-                showImageNames = 'false';
-                localStorage.setItem('showImageNames', 'false');
-            }
-            state.showImageNames = showImageNames === 'true';
+            // 保存图片名称显示设置（来自内存变量）
+            state.showImageNames = !!showImageNamesSetting;
             
-            // 保存到localStorage
-            try {
-                localStorage.setItem('rankingState', JSON.stringify(state));
-                console.log('状态已保存');
-            } catch (e) {
+            // 保存到IndexedDB
+            saveToIndexedDB(state).then(() => {
+                console.log('状态已保存到IndexedDB');
+            }).catch(e => {
                 console.error('保存状态失败:', e);
                 alert('保存失败：存储空间不足，请删除一些图片后重试');
-            }
+            });
         }
 
-        // 从localStorage加载状态
+        // 保存数据到IndexedDB
+        function saveToIndexedDB(data) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    initDB().then(() => {
+                        saveToIndexedDB(data).then(resolve).catch(reject);
+                    }).catch(reject);
+                    return;
+                }
+                
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put({ id: 1, data: data });
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // 从IndexedDB加载状态
         // 辅助函数：将RGB颜色转换为十六进制
         function rgbToHex(rgb) {
             if (!rgb || rgb === 'transparent') return '#808080'; // 默认灰色而不是黑色
@@ -1530,17 +1575,38 @@
             return '#' + toHex(rgbMatch[1]) + toHex(rgbMatch[2]) + toHex(rgbMatch[3]);
         }
 
+        // 从IndexedDB加载数据
+        function loadFromIndexedDB() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    initDB().then(() => {
+                        loadFromIndexedDB().then(resolve).catch(reject);
+                    }).catch(reject);
+                    return;
+                }
+                
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(1);
+                
+                request.onsuccess = () => {
+                    if (request.result) {
+                        resolve(request.result.data);
+                    } else {
+                        resolve(null);
+                    }
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
         async function loadState() {
-            const savedState = localStorage.getItem('rankingState');
+            const savedState = await loadFromIndexedDB();
             if (!savedState) return;
             
             try {
-                const state = JSON.parse(savedState);
-                
-                // 恢复图片名称显示设置（仅在首次加载时设置默认值）
-                if (localStorage.getItem('showImageNames') === null) {
-                    localStorage.setItem('showImageNames', 'false');
-                }
+                // IndexedDB 中直接存储对象，无需 JSON 解析
+                const state = savedState;
                 
                 // 清除现有的图片和评级
                 document.querySelectorAll('.image-item').forEach(item => item.remove());
@@ -1637,6 +1703,9 @@
                 });
                 
                 console.log('状态已恢复');
+                // 恢复图片名称显示设置
+                showImageNamesSetting = !!state.showImageNames;
+                updateImageNamesVisibility(showImageNamesSetting);
             } catch (e) {
                 console.error('恢复状态失败:', e);
             }
@@ -1674,10 +1743,9 @@
                 <div class="image-name-overlay">${displayName}</div>
             `;
             
-            // 应用当前的图片名称显示设置
-            const showImageNames = localStorage.getItem('showImageNames') === 'true';
+            // 应用当前的图片名称显示设置（来自内存变量）
             const nameOverlay = imageItem.querySelector('.image-name-overlay');
-            nameOverlay.style.display = showImageNames ? 'block' : 'none';
+            nameOverlay.style.display = showImageNamesSetting ? 'block' : 'none';
             
             return imageItem;
         }
@@ -1702,26 +1770,14 @@
 
         // 在页面加载时恢复状态
         window.addEventListener('load', function() {
-            loadState().then(() => {
-                // 确保所有颜色选择器显示正确的颜色
-                setTimeout(() => {
-                    document.querySelectorAll('.color-picker').forEach(picker => {
-                        const tierLabel = picker.closest('.tier-label');
-                        if (tierLabel && tierLabel.style.backgroundColor) {
-                            const bgColor = tierLabel.style.backgroundColor;
-                            picker.value = bgColor.startsWith('#') ? bgColor : rgbToHex(bgColor);
-                        }
-                    });
-                }, 100);
-                // 初始化图片名称显示状态（默认关闭）
-                let showImageNames = localStorage.getItem('showImageNames');
-                if (showImageNames === null) {
-                    showImageNames = 'false';
-                    localStorage.setItem('showImageNames', 'false');
-                }
-                updateImageNamesVisibility(showImageNames === 'true');
+            initDB().then(() => {
+                loadState();
+            }).catch(e => {
+                console.error('IndexedDB初始化失败:', e);
             });
         });
+
+        // 已移除 localStorage 后备方案
 
         // 添加tier名称编辑事件监听
         document.addEventListener('input', function(e) {
