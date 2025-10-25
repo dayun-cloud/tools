@@ -528,6 +528,112 @@
             transform: translateY(-2px);
         }
 
+        /* 公告弹窗样式 */
+        .announcement-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2500;
+        }
+
+        .announcement-content {
+            background: #2d2d44;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            color: #e0e0e0;
+            position: relative;
+            border: 1px solid #3d3d5c;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .announcement-content h2 {
+            color: #87cfde;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        .announcement-content .announcement-text {
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+
+        .announcement-content .announcement-text p {
+            margin-bottom: 15px;
+        }
+
+        .announcement-content .announcement-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .announcement-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .announcement-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .announcement-btn.primary {
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            color: #1a1a2e;
+        }
+
+        .announcement-btn.secondary {
+            background: #3d3d5c;
+            color: #e0e0e0;
+            border: 1px solid #4d4d6c;
+        }
+
+        .announcement-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .announcement-btn.primary:hover {
+            background: linear-gradient(90deg, #5a96a6, #7bb8c8);
+        }
+
+        .announcement-btn.secondary:hover {
+            background: #4d4d6c;
+        }
+
+        .close-announcement {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-announcement:hover {
+            color: #e0e0e0;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -586,6 +692,25 @@
         </div>
     </div>
     
+    <!-- 公告弹窗 -->
+    <div class="announcement-modal" id="announcement-modal">
+        <div class="announcement-content">
+            <button class="close-announcement" onclick="closeAnnouncement()">×</button>
+            <h2>📢 重要公告</h2>
+            <div class="announcement-text" id="announcement-text">
+                <p>欢迎使用曼波配音生成器！</p>
+                <p>🎉 新功能上线：</p>
+                <p>• 新增历史记录功能</p>
+                <p>• 优化了用户体验</p>
+                <p>感谢您的使用，如有问题请联系我们。</p>
+            </div>
+            <div class="announcement-buttons">
+                <button class="announcement-btn primary" onclick="closeAnnouncement()">知道了</button>
+                <button class="announcement-btn secondary" onclick="dontShowAgain()">不再显示</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="container">
         <div class="header">
             <h1>🎵 曼波配音生成器</h1>
@@ -617,10 +742,20 @@
         // 后端API地址 - 部署后需要修改为实际的Cloudflare Workers地址
         const BACKEND_URL = 'https://api-mb.dayun.cool';
         
-        // 页面加载时获取统计数据
+        // 公告配置
+        const ANNOUNCEMENT_CONFIG = {
+            version: '0', // 公告版本号，当需要显示新公告时更新此版本号
+            title: '📢 重要公告',
+            content: `
+                <p>抱歉！api异常，暂时用不了！</p>
+            `
+        };
+
+        // 页面加载时获取统计数据并检查公告
         window.addEventListener('DOMContentLoaded', async () => {
             try {
                 await fetchStats();
+                checkAnnouncement();
             } catch (error) {
             }
         });
@@ -865,12 +1000,75 @@
             }
         });
 
+        // 公告相关函数
+        function checkAnnouncement() {
+            const announcementData = getAnnouncementData();
+            const currentVersion = ANNOUNCEMENT_CONFIG.version;
+            
+            // 显示公告的条件：
+            // 1. 没有存储过数据（首次访问）
+            // 2. 版本号不匹配（新版本公告）
+            // 3. 版本号匹配但用户没有选择"不再显示"
+            if (!announcementData || 
+                announcementData.version !== currentVersion || 
+                (announcementData.version === currentVersion && !announcementData.dontShow)) {
+                showAnnouncement();
+            }
+        }
+
+        function getAnnouncementData() {
+            try {
+                const data = localStorage.getItem('announcement_data');
+                return data ? JSON.parse(data) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function setAnnouncementData(version, dontShow = false) {
+            const data = {
+                version: version,
+                dontShow: dontShow,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('announcement_data', JSON.stringify(data));
+        }
+
+        function showAnnouncement() {
+            // 更新公告内容
+            document.querySelector('.announcement-content h2').textContent = ANNOUNCEMENT_CONFIG.title;
+            document.getElementById('announcement-text').innerHTML = ANNOUNCEMENT_CONFIG.content;
+            
+            // 显示公告弹窗
+            document.getElementById('announcement-modal').style.display = 'flex';
+        }
+
+        function closeAnnouncement() {
+            document.getElementById('announcement-modal').style.display = 'none';
+            // 记录用户已查看此版本公告，但不选择"不再显示"
+            setAnnouncementData(ANNOUNCEMENT_CONFIG.version, false);
+        }
+
+        function dontShowAgain() {
+            document.getElementById('announcement-modal').style.display = 'none';
+            // 记录用户选择不再显示此版本公告
+            setAnnouncementData(ANNOUNCEMENT_CONFIG.version, true);
+        }
+
+        // 点击公告弹窗外部关闭
+        document.getElementById('announcement-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAnnouncement();
+            }
+        });
+
         // ESC键关闭弹窗
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 hideHelp();
                 hideHistory();
                 confirmAction(false);
+                closeAnnouncement();
             }
         });
 

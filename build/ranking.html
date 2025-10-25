@@ -1031,6 +1031,10 @@
                     tierContent.appendChild(draggedElement);
                     // 如果启用了固定高度，调整图片大小
                     if (fixedHeightSetting) {
+                        // 重置拖拽图片的样式
+                        draggedElement.classList.remove('single-row', 'multi-row', 'adaptive');
+                        draggedElement.style.width = '';
+                        draggedElement.style.height = '';
                         adjustImageSizes(tier);
                     }
                 } else if (imageGallery && !deleteZone) {
@@ -1061,6 +1065,13 @@
 
             isDragging = false;
             draggedElement = null;
+            
+            // 拖拽完成后重新计算所有评级的大小
+            if (fixedHeightSetting) {
+                setTimeout(() => {
+                    recalculateAllTierSizes();
+                }, 50);
+            }
         }
 
         function handleTouchEnd(e) {
@@ -1090,6 +1101,10 @@
                     tierContent.appendChild(draggedElement);
                     // 如果启用了固定高度，调整图片大小
                     if (fixedHeightSetting) {
+                        // 重置拖拽图片的样式
+                        draggedElement.classList.remove('single-row', 'multi-row', 'adaptive');
+                        draggedElement.style.width = '';
+                        draggedElement.style.height = '';
                         adjustImageSizes(tier);
                     }
                 } else if (imageGallery && !deleteZone) {
@@ -1121,6 +1136,13 @@
 
             isDragging = false;
             draggedElement = null;
+            
+            // 拖拽完成后重新计算所有评级的大小
+            if (fixedHeightSetting) {
+                setTimeout(() => {
+                    recalculateAllTierSizes();
+                }, 50);
+            }
         }
 
         function createDragPreview(element) {
@@ -1406,6 +1428,15 @@
             
             // 保存状态
             saveState();
+        }
+
+        // 重新计算所有评级的大小
+        function recalculateAllTierSizes() {
+            if (!fixedHeightSetting) return;
+            
+            document.querySelectorAll('.tier').forEach(tier => {
+                adjustImageSizes(tier);
+            });
         }
 
         // 根据图片数量动态调整图片大小
@@ -2017,6 +2048,15 @@
             }).catch(e => {
                 console.error('IndexedDB初始化失败:', e);
             });
+        });
+
+        // 监听窗口大小变化，重新计算图片大小
+        window.addEventListener('resize', function() {
+            if (fixedHeightSetting) {
+                setTimeout(() => {
+                    recalculateAllTierSizes();
+                }, 100);
+            }
         });
 
         // 已移除 localStorage 后备方案
