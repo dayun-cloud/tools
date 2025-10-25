@@ -43,6 +43,12 @@
             transition: all 0.3s ease;
         }
 
+        .tier.fixed-height {
+            height: 130px;
+            min-height: 130px;
+            max-height: 130px;
+        }
+
         .tier:hover {
             background-color: #3a3a3a;
         }
@@ -177,6 +183,36 @@
         .help-btn:hover {
             background: #7dbece;
             transform: scale(1.1);
+        }
+
+        .fixed-height-toggle {
+            position: fixed;
+            top: 20px;
+            right: 80px;
+            background: #2d2d2d;
+            border: 2px solid #65a6bc;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fixed-height-toggle:hover {
+            background: #3a3a3a;
+            border-color: #7dbece;
+        }
+
+        .fixed-height-toggle input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
         }
 
         .help-modal {
@@ -401,6 +437,50 @@
             align-items: center;
         }
 
+        .tier.fixed-height .tier-content {
+            height: 120px;
+            min-height: 120px;
+            max-height: 120px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            transition: scrollbar-color 0.3s ease;
+        }
+
+        .tier.fixed-height .tier-content:hover {
+            scrollbar-color: #65a6bc #404040;
+        }
+
+        .tier.fixed-height .tier-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tier.fixed-height .tier-content::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 3px;
+        }
+
+        .tier.fixed-height .tier-content::-webkit-scrollbar-thumb {
+            background: transparent;
+            border-radius: 3px;
+            transition: background 0.3s ease;
+        }
+
+        .tier.fixed-height .tier-content:hover::-webkit-scrollbar-track {
+            background: #404040;
+        }
+
+        .tier.fixed-height .tier-content:hover::-webkit-scrollbar-thumb {
+            background: #65a6bc;
+        }
+
+        .tier.fixed-height .tier-content:hover::-webkit-scrollbar-thumb:hover {
+            background: #7dbece;
+        }
+
         .upload-btn {
             width: 120px;
             height: 120px;
@@ -451,6 +531,29 @@
             position: relative;
             user-select: none;
             -webkit-user-drag: none;
+        }
+
+        .tier.fixed-height .image-item {
+            flex-shrink: 0;
+        }
+
+        .tier.fixed-height .image-item.single-row {
+            width: 120px;
+            height: 120px;
+        }
+
+        .tier.fixed-height .image-item.multi-row {
+            width: 70px;
+            height: 70px;
+        }
+
+        .tier.fixed-height .image-item.adaptive {
+            width: auto;
+            height: auto;
+            min-width: 70px;
+            min-height: 70px;
+            max-width: 120px;
+            max-height: 120px;
         }
 
         .image-item:hover {
@@ -578,10 +681,14 @@
                 <li>删除评级：点击评级名称后右侧删除按钮可删除评级</li>
                 <li>创建新评级：点击底部"+添加评级"按钮创建新的评级</li>
             </ul>
-            <div class="toggle-container">
+            <div class="toggle-container" style="display: flex; gap: 20px; justify-content: center;">
                 <label>
                     <input type="checkbox" id="show-image-names-toggle">
                     <span class="toggle-label">显示图片名称</span>
+                </label>
+                <label>
+                    <input type="checkbox" id="fixed-height-toggle">
+                    <span class="toggle-label">固定评级高度</span>
                 </label>
             </div>
             <div class="save-image-container">
@@ -671,6 +778,7 @@
         let draggedElement = null;
         let imageCounter = 0;
         let showImageNamesSetting = false; // 仅使用 IndexedDB 管理该状态
+        let fixedHeightSetting = false; // 固定高度设置
 
         // 文件上传处理
         const fileInput = document.getElementById('file-input');
@@ -921,6 +1029,10 @@
                 } else if (tier) {
                     const tierContent = tier.querySelector('.tier-content');
                     tierContent.appendChild(draggedElement);
+                    // 如果启用了固定高度，调整图片大小
+                    if (fixedHeightSetting) {
+                        adjustImageSizes(tier);
+                    }
                 } else if (imageGallery && !deleteZone) {
                     imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
                 }
@@ -976,6 +1088,10 @@
                 } else if (tier) {
                     const tierContent = tier.querySelector('.tier-content');
                     tierContent.appendChild(draggedElement);
+                    // 如果启用了固定高度，调整图片大小
+                    if (fixedHeightSetting) {
+                        adjustImageSizes(tier);
+                    }
                 } else if (imageGallery && !deleteZone) {
                     imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
                 }
@@ -1201,6 +1317,11 @@
             
             rankingContainer.appendChild(newTier);
             
+            // 如果启用了固定高度，应用样式
+            if (fixedHeightSetting) {
+                newTier.classList.add('fixed-height');
+            }
+            
             // 添加新评级后保存状态
             saveState();
         }
@@ -1228,6 +1349,7 @@
             document.getElementById('help-modal').style.display = 'flex';
             // 恢复开关状态（仅从内存变量）
             document.getElementById('show-image-names-toggle').checked = !!showImageNamesSetting;
+            document.getElementById('fixed-height-toggle').checked = !!fixedHeightSetting;
         }
 
         function hideHelp() {
@@ -1235,6 +1357,17 @@
             // 保存开关状态（内存+IndexedDB）
             showImageNamesSetting = document.getElementById('show-image-names-toggle').checked;
             updateImageNamesVisibility(showImageNamesSetting);
+            
+            // 处理固定高度设置
+            const fixedHeightCheckbox = document.getElementById('fixed-height-toggle');
+            if (fixedHeightCheckbox) {
+                const newFixedHeightSetting = fixedHeightCheckbox.checked;
+                if (newFixedHeightSetting !== fixedHeightSetting) {
+                    fixedHeightSetting = newFixedHeightSetting;
+                    toggleFixedHeight();
+                }
+            }
+            
             // 统一通过 saveState 持久化完整状态
             try { saveState(); } catch (e) { console.error('保存状态失败:', e); }
         }
@@ -1245,6 +1378,90 @@
                 hideHelp();
             }
         });
+
+        // 固定高度切换功能
+        function toggleFixedHeight() {
+            const checkbox = document.getElementById('fixed-height-toggle');
+            fixedHeightSetting = checkbox.checked;
+            
+            // 应用或移除固定高度样式
+            document.querySelectorAll('.tier').forEach(tier => {
+                if (fixedHeightSetting) {
+                    tier.classList.add('fixed-height');
+                    adjustImageSizes(tier);
+                } else {
+                    tier.classList.remove('fixed-height');
+                    // 恢复原始图片大小
+                    const images = tier.querySelectorAll('.image-item');
+                    images.forEach(img => {
+                        img.classList.remove('single-row', 'multi-row', 'adaptive');
+                        img.style.width = '120px';
+                        img.style.height = '120px';
+                    });
+                    // 重置滚动样式
+                    const tierContent = tier.querySelector('.tier-content');
+                    tierContent.style.overflowY = '';
+                }
+            });
+            
+            // 保存状态
+            saveState();
+        }
+
+        // 根据图片数量动态调整图片大小
+        function adjustImageSizes(tier) {
+            if (!fixedHeightSetting) return;
+            
+            const tierContent = tier.querySelector('.tier-content');
+            const images = tierContent.querySelectorAll('.image-item');
+            
+            if (images.length === 0) return;
+            
+            const containerWidth = tierContent.clientWidth - 10; // 减去padding
+            const gap = 5; // 图片间距
+            
+            // 计算一行能放多少个120px的图片
+            const maxImagesPerRow120 = Math.floor(containerWidth / (120 + gap));
+            
+            if (images.length <= maxImagesPerRow120) {
+                // 单行显示，使用120px，不需要滚动
+                images.forEach(img => {
+                    img.classList.remove('multi-row', 'adaptive');
+                    img.classList.add('single-row');
+                });
+                tierContent.style.overflowY = 'hidden';
+            } else {
+                // 需要自适应缩小
+                // 计算每个图片应该的宽度
+                const availableWidth = containerWidth - (images.length - 1) * gap;
+                const calculatedWidth = Math.floor(availableWidth / images.length);
+                
+                if (calculatedWidth >= 70) {
+                    // 可以在一行内显示，使用自适应尺寸
+                    images.forEach(img => {
+                        img.classList.remove('single-row', 'multi-row');
+                        img.classList.add('adaptive');
+                        img.style.width = calculatedWidth + 'px';
+                        img.style.height = calculatedWidth + 'px';
+                    });
+                    tierContent.style.overflowY = 'hidden';
+                } else {
+                    // 需要换行显示，使用70px
+                    images.forEach(img => {
+                        img.classList.remove('single-row', 'adaptive');
+                        img.classList.add('multi-row');
+                        img.style.width = '70px';
+                        img.style.height = '70px';
+                    });
+                    tierContent.style.overflowY = 'auto';
+                }
+            }
+            
+            // 强制触发重新布局，确保滚动条正确显示
+            setTimeout(() => {
+                tierContent.scrollTop = 0;
+            }, 10);
+        }
 
         // 更新图片名称显示状态
         function updateImageNamesVisibility(show) {
@@ -1384,6 +1601,11 @@
                 });
 
                 rankingContainer.appendChild(tierDiv);
+                
+                // 如果启用了固定高度，应用样式
+                if (fixedHeightSetting) {
+                    tierDiv.classList.add('fixed-height');
+                }
             });
 
             // IndexedDB 模式下，无需处理 localStorage
@@ -1531,6 +1753,9 @@
             
             // 保存图片名称显示设置（来自内存变量）
             state.showImageNames = !!showImageNamesSetting;
+            
+            // 保存固定高度设置
+            state.fixedHeight = !!fixedHeightSetting;
             
             // 保存到IndexedDB
             saveToIndexedDB(state).then(() => {
@@ -1706,6 +1931,23 @@
                 // 恢复图片名称显示设置
                 showImageNamesSetting = !!state.showImageNames;
                 updateImageNamesVisibility(showImageNamesSetting);
+                
+                // 恢复固定高度设置
+                fixedHeightSetting = !!state.fixedHeight;
+                const checkbox = document.getElementById('fixed-height-toggle');
+                if (checkbox) {
+                    checkbox.checked = fixedHeightSetting;
+                }
+                
+                // 应用固定高度样式
+                document.querySelectorAll('.tier').forEach(tier => {
+                    if (fixedHeightSetting) {
+                        tier.classList.add('fixed-height');
+                        adjustImageSizes(tier);
+                    } else {
+                        tier.classList.remove('fixed-height');
+                    }
+                });
             } catch (e) {
                 console.error('恢复状态失败:', e);
             }
