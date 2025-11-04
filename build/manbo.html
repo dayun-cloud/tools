@@ -739,9 +739,7 @@
     </div>
 
     <script>
-        // 后端API地址 - 部署后需要修改为实际的Cloudflare Workers地址
-        const BACKEND_URL = 'https://api-mb.dayun.cool';
-        
+           
         // 公告配置
         const ANNOUNCEMENT_CONFIG = {
             version: '1', // 公告版本号，当需要显示新公告时更新此版本号
@@ -751,28 +749,13 @@
             `
         };
 
-        // 页面加载时获取统计数据并检查公告
+        // 页面加载时检查公告
         window.addEventListener('DOMContentLoaded', async () => {
             try {
-                await fetchStats();
                 checkAnnouncement();
             } catch (error) {
             }
         });
-  
-        // 获取统计数据
-        async function fetchStats() {
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/stats`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('generateCount').textContent = `本站已生成语音${data.generate_count}次`;
-                }
-            } catch (error) {
-                // 静默处理错误
-            }
-        }
         
         async function generateSpeech() {
             const text = document.getElementById('textInput').value.trim();
@@ -798,20 +781,6 @@
                 const data = await response.json();
                 
                 if (data.code === 200 && data.url) {
-                    try {
-                        // 增加生成次数统计
-                        await fetch(`${BACKEND_URL}/api/stats`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        
-                        // 更新统计数据
-                        await fetchStats();
-                    } catch (statsError) {
-                    }
-                    
                     showSuccess(data.url, text);
                 } else {
                     showError(data.msg || '生成失败，请重试');
@@ -1075,7 +1044,6 @@
     </script>
     
     <div class="footer">
-        <span id="generateCount" style="color: #999; padding-right: 15px; border-right: 1px solid #666;">本站已生成语音0次</span>
         <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding: 0 15px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#999'">联系方式</a>
         <span style="color: #999; padding-left: 15px;">© 2025 大沄</span>
     </div>
