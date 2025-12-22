@@ -1023,9 +1023,19 @@
                 const tier = elementBelow?.closest('.tier');
                 const deleteZone = elementBelow?.closest('.delete-zone');
                 const imageGallery = elementBelow?.closest('.image-gallery');
+                const targetItem = elementBelow?.closest('.image-item');
 
                 if (deleteZone) {
                     draggedElement.remove();
+                } else if (targetItem && targetItem !== draggedElement) {
+                    targetItem.parentNode.insertBefore(draggedElement, targetItem);
+                    if (fixedHeightSetting) {
+                        // 重置拖拽图片的样式
+                        draggedElement.classList.remove('single-row', 'multi-row', 'adaptive');
+                        draggedElement.style.width = '';
+                        draggedElement.style.height = '';
+                        adjustImageSizes(tier);
+                    }
                 } else if (tier) {
                     const tierContent = tier.querySelector('.tier-content');
                     tierContent.appendChild(draggedElement);
