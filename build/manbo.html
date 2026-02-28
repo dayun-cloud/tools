@@ -429,7 +429,7 @@
         }
 
         .history-text {
-            flex: 0 0 30%;
+            flex: 1 1 auto;
             color: #e0e0e0;
             font-size: 14px;
             margin-right: 10px;
@@ -445,6 +445,33 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             margin-right: 10px;
+        }
+        
+        .history-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex: 0 0 auto;
+        }
+        
+        .history-item .copy-btn {
+            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            color: #1a1a2e;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            transition: transform 0.3s;
+        }
+        
+        .history-item .copy-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .history-item .copy-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .delete-btn {
@@ -803,7 +830,7 @@
             resultContent.innerHTML = `
                 <div class="success-message">
                     <h3>✅ 语音生成成功！</h3>
-                    <button class="copy-btn" onclick="copyLink('${audioUrl}')">📋 复制链接</button>
+                    <button class="copy-btn" onclick="downloadAudio('${audioUrl}', this)">⬇️ 下载音频</button>
                 </div>
                 
                 <div class="audio-player">
@@ -836,17 +863,15 @@
         }
 
 
-        function copyLink(audioUrl) {
-            const copyBtn = document.querySelector('.copy-btn');
-            
+        function copyLink(audioUrl, btn) {
+            const copyBtn = btn || document.querySelector('.copy-btn');
+            if (!copyBtn) return;
             if (copyBtn.textContent === '✅ 已复制') {
                 return;
             }
-            
             navigator.clipboard.writeText(audioUrl).then(function() {
                 const originalText = copyBtn.textContent;
                 copyBtn.textContent = '✅ 已复制';
-                
                 setTimeout(function() {
                     copyBtn.textContent = originalText;
                 }, 2000);
@@ -854,6 +879,34 @@
                 console.error('复制失败:', err);
                 alert('复制失败，请手动复制链接');
             });
+        }
+
+        function downloadAudio(audioUrl, btn) {
+            const a = document.createElement('a');
+            a.href = audioUrl;
+            let filename;
+            try {
+                const u = new URL(audioUrl);
+                const base = u.pathname.split('/').pop() || 'manbo_audio.mp3';
+                filename = base.includes('.') ? base : base + '.mp3';
+            } catch (e) {
+                filename = 'manbo_audio.mp3';
+            }
+            a.download = filename;
+            const originalText = btn ? btn.textContent : null;
+            if (btn) {
+                btn.textContent = '⬇️ 正在下载';
+                btn.disabled = true;
+            }
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            if (btn) {
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            }
         }
 
         // 帮助弹窗函数
@@ -909,8 +962,11 @@
             historyList.innerHTML = history.map((record, index) => `
                 <div class="history-item">
                     <div class="history-text" title="${record.fullText}">${record.text}</div>
-                    <a href="${record.url}" target="_blank" class="history-link" title="${record.url}">${record.url}</a>
-                    <button class="delete-btn" onclick="deleteHistoryItem(${index})">删除</button>
+                    <div class="history-actions">
+                        <button class="copy-btn" onclick="downloadAudio('${record.url}', this)">⬇️ 下载音频</button>
+                        <button class="copy-btn" onclick="copyLink('${record.url}', this)">📋 复制链接</button>
+                        <button class="delete-btn" onclick="deleteHistoryItem(${index})">删除</button>
+                    </div>
                 </div>
             `).join('');
         }
