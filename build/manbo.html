@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="manbo.ico">
     <title>曼波配音生成器</title>
     <style>
         * {
@@ -19,7 +20,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: radial-gradient(circle at 50% 0%, #1a2236 0%, #050505 100%);
             background-attachment: fixed;
             min-height: 100vh;
             display: flex;
@@ -28,18 +29,19 @@
             padding: 20px;
             padding-top: 20px;
             margin-top: -30px;
-            color: #e0e0e0;
+            color: #ecf0f1;
             overflow-x: hidden;
         }
 
         .container {
-            background: #2d2d44;
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 0 40px rgba(102, 167, 189, 0.05), 0 20px 40px rgba(0,0,0,0.6);
             padding: 40px;
             max-width: 600px;
             width: 100%;
-            border: 1px solid #3d3d5c;
+            border: 1px solid rgba(136, 207, 222, 0.15);
         }
 
         .header {
@@ -48,17 +50,18 @@
         }
 
         .header h1 {
-            color: #e0e0e0;
+            color: #ecf0f1;
             font-size: 2.5em;
             margin-bottom: 10px;
-            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
             -webkit-background-clip: text;
+            text-shadow: 0 0 30px rgba(136, 207, 222, 0.2);
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
         .header p {
-            color: #b0b0b0;
+            color: #bdc3c7;
             font-size: 1.1em;
         }
 
@@ -73,26 +76,26 @@
         .input-group label {
             display: block;
             margin-bottom: 8px;
-            color: #e0e0e0;
+            color: #ecf0f1;
             font-weight: 600;
         }
 
         .input-group textarea {
             width: 100%;
             padding: 15px;
-            border: 2px solid #3d3d5c;
+            border: 1px solid #2d3b4e;
             border-radius: 10px;
             font-size: 16px;
             resize: none;
             height: 240px;
             transition: border-color 0.3s;
-            background: #1a1a2e;
-            color: #e0e0e0;
+            background: #080a0f;
+            color: #ecf0f1;
         }
 
         .input-group textarea:focus {
             outline: none;
-            border-color: #87cfde;
+            border-color: #88cfde;
         }
 
         .input-group textarea::-webkit-scrollbar {
@@ -100,17 +103,18 @@
         }
 
         .input-group textarea::-webkit-scrollbar-track {
-            background: #2d2d44;
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(10px);
             border-radius: 4px;
         }
 
         .input-group textarea::-webkit-scrollbar-thumb {
-            background: #3d3d5c;
+            background: #1e293b;
             border-radius: 4px;
         }
 
         .input-group textarea::-webkit-scrollbar-thumb:hover {
-            background: #4d4d6c;
+            background: #2c3e50;
         }
 
         .input-group textarea::placeholder {
@@ -120,7 +124,7 @@
 
         .generate-btn {
             width: 100%;
-            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
             color: white;
             border: none;
             padding: 15px 30px;
@@ -145,14 +149,14 @@
             display: none;
             margin-top: 30px;
             padding: 20px;
-            background: #1a1a2e;
+            background: #080a0f;
             border-radius: 10px;
-            border: 1px solid #3d3d5c;
+            border: 1px solid rgba(136, 207, 222, 0.15);
         }
 
         .result-section.success {
-            background: #1a1a2e;
-            border: 1px solid #3d3d5c;
+            background: #080a0f;
+            border: 1px solid rgba(136, 207, 222, 0.15);
         }
 
         .result-section.error {
@@ -177,8 +181,8 @@
         }
 
         .loading-spinner {
-            border: 4px solid #3d3d5c;
-            border-top: 4px solid #87cfde;
+            border: 4px solid #1e293b;
+            border-top: 4px solid #88cfde;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -202,7 +206,7 @@
 
         .success-message {
             background: transparent;
-            color: #87cfde;
+            color: #88cfde;
             padding: 0px 0 15px 0px;
             border-radius: 8px;
             margin: 15px 0;
@@ -213,8 +217,8 @@
         }
 
         .copy-btn {
-            background: linear-gradient(90deg, #65a6bc, #87cfde);
-            color: #1a1a2e;
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
+            color: #0a0c12;
             border: none;
             padding: 8px 16px;
             border-radius: 6px;
@@ -235,7 +239,7 @@
             right: 20px;
             width: 50px;
             height: 50px;
-            background: linear-gradient(90deg, #65a6bc, #87cfde);
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
             border: none;
             border-radius: 50%;
             color: white;
@@ -265,18 +269,19 @@
         }
 
         .help-content {
-            background: #2d2d44;
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 10px;
             max-width: 500px;
             width: 90%;
-            color: #e0e0e0;
+            color: #ecf0f1;
             position: relative;
-            border: 1px solid #3d3d5c;
+            border: 1px solid rgba(136, 207, 222, 0.15);
         }
 
         .help-content h2 {
-            color: #87cfde;
+            color: #88cfde;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -294,7 +299,7 @@
 
         .help-content li:before {
             content: "•";
-            color: #87cfde;
+            color: #88cfde;
             font-weight: bold;
             position: absolute;
             left: 0;
@@ -312,18 +317,18 @@
         }
 
         .close-help:hover {
-            color: #e0e0e0;
+            color: #ecf0f1;
         }
 
         .ranking-link {
             margin-top: 20px;
             text-align: center;
             padding-top: 20px;
-            border-top: 1px solid #3d3d5c;
+            border-top: 1px solid #1e293b;
         }
 
         .ranking-link a {
-            color: #87cfde;
+            color: #88cfde;
             text-decoration: none;
             font-weight: 600;
         }
@@ -358,15 +363,16 @@
         }
 
         .history-content {
-            background: #2d2d44;
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 10px;
             max-width: 600px;
             width: 90%;
             max-height: 80vh;
-            color: #e0e0e0;
+            color: #ecf0f1;
             position: relative;
-            border: 1px solid #3d3d5c;
+            border: 1px solid rgba(136, 207, 222, 0.15);
             display: flex;
             flex-direction: column;
         }
@@ -382,21 +388,21 @@
         }
 
         .history-list::-webkit-scrollbar-track {
-            background: #1a1a2e;
+            background: #080a0f;
             border-radius: 4px;
         }
 
         .history-list::-webkit-scrollbar-thumb {
-            background: #87cfde;
+            background: #88cfde;
             border-radius: 4px;
         }
 
         .history-list::-webkit-scrollbar-thumb:hover {
-            background: #65a6bc;
+            background: #66a7bd;
         }
 
         .history-content h2 {
-            color: #87cfde;
+            color: #88cfde;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -413,12 +419,12 @@
         }
 
         .close-history:hover {
-            color: #e0e0e0;
+            color: #ecf0f1;
         }
 
         .history-item {
-            background: #1a1a2e;
-            border: 1px solid #3d3d5c;
+            background: #080a0f;
+            border: 1px solid rgba(136, 207, 222, 0.15);
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 10px;
@@ -430,13 +436,13 @@
 
         .history-text {
             flex: 1 1 auto;
-            color: #e0e0e0;
+            color: #ecf0f1;
             font-size: 14px;
             margin-right: 10px;
         }
 
         .history-link {
-            color: #87cfde;
+            color: #88cfde;
             text-decoration: none;
             font-size: 12px;
             word-break: break-all;
@@ -455,8 +461,8 @@
         }
         
         .history-item .copy-btn {
-            background: linear-gradient(90deg, #65a6bc, #87cfde);
-            color: #1a1a2e;
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
+            color: #0a0c12;
             padding: 5px 10px;
             border-radius: 4px;
             font-size: 12px;
@@ -503,18 +509,19 @@
         }
 
         .confirm-content {
-            background: #2d2d44;
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 10px;
             max-width: 400px;
             width: 90%;
-            color: #e0e0e0;
+            color: #ecf0f1;
             text-align: center;
-            border: 1px solid #3d3d5c;
+            border: 1px solid rgba(136, 207, 222, 0.15);
         }
 
         .confirm-content h3 {
-            color: #87cfde;
+            color: #88cfde;
             margin-bottom: 15px;
         }
 
@@ -543,8 +550,8 @@
         }
 
         .confirm-btn.no {
-            background: #87cfde;
-            color: #1a1a2e;
+            background: #88cfde;
+            color: #0a0c12;
         }
 
         .confirm-btn:hover {
@@ -570,19 +577,20 @@
         }
 
         .announcement-content {
-            background: #2d2d44;
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 15px;
             max-width: 500px;
             width: 90%;
-            color: #e0e0e0;
+            color: #ecf0f1;
             position: relative;
-            border: 1px solid #3d3d5c;
+            border: 1px solid rgba(136, 207, 222, 0.15);
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
 
         .announcement-content h2 {
-            color: #87cfde;
+            color: #88cfde;
             margin-bottom: 20px;
             text-align: center;
             font-size: 1.5em;
@@ -591,7 +599,7 @@
         .announcement-content .announcement-text {
             line-height: 1.6;
             margin-bottom: 25px;
-            color: #e0e0e0;
+            color: #ecf0f1;
             font-size: 16px;
         }
 
@@ -622,14 +630,14 @@
         }
 
         .announcement-btn.primary {
-            background: linear-gradient(90deg, #65a6bc, #87cfde);
-            color: #1a1a2e;
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
+            color: #0a0c12;
         }
 
         .announcement-btn.secondary {
-            background: #3d3d5c;
-            color: #e0e0e0;
-            border: 1px solid #4d4d6c;
+            background: #1e293b;
+            color: #ecf0f1;
+            border: 1px solid #2c3e50;
         }
 
         .announcement-btn:hover {
@@ -642,7 +650,7 @@
         }
 
         .announcement-btn.secondary:hover {
-            background: #4d4d6c;
+            background: #2c3e50;
         }
 
         .close-announcement {
@@ -658,7 +666,7 @@
         }
 
         .close-announcement:hover {
-            color: #e0e0e0;
+            color: #ecf0f1;
         }
 
         @media (max-width: 768px) {
@@ -674,9 +682,191 @@
                 flex-direction: column;
             }
         }
+    
+        /* 灯绳开关样式 */
+        .light-switch-container {
+            position: fixed;
+            top: -50px;
+            left: 8%;
+            z-index: 9999;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.4, 2.5, 0.5, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .light-switch-container:hover {
+            transform: translateY(5px);
+        }
+        
+        .light-switch-container:active {
+            transform: translateY(20px);
+            transition: transform 0.1s;
+        }
+
+        .light-cord {
+            width: 2px;
+            height: 160px;
+            background: linear-gradient(to bottom, #444, #88cfde);
+            box-shadow: 0 0 5px rgba(136, 207, 222, 0.5);
+        }
+
+        .light-handle {
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle at 30% 30%, #88cfde, #66a7bd);
+            border-radius: 50% 50% 10% 10%;
+            box-shadow: 0 0 10px rgba(136, 207, 222, 0.8), inset 0 0 5px rgba(255,255,255,0.5);
+            margin-top: -2px;
+            position: relative;
+        }
+        /* 悬停提示文字 */
+        .light-switch-container::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #88cfde;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            pointer-events: none;
+            border: 1px solid rgba(136, 207, 222, 0.3);
+        }
+
+        .light-switch-container:hover::after {
+            opacity: 1;
+            visibility: visible;
+            margin-top: 15px;
+        }
+
+        /* 亮色模式样式覆盖 */
+        body.light-mode {
+            background: radial-gradient(circle at 50% 0%, #f0f4f8 0%, #d9e2ec 100%);
+            color: #243b53;
+        }
+
+        body.light-mode .container {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #bcccdc;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        body.light-mode .header h1 {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(90deg, #337ea9, #54a0b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        body.light-mode .header p {
+            color: #486581;
+        }
+        
+        body.light-mode .input-group label {
+            color: #102a43;
+        }
+
+        body.light-mode .input-group textarea {
+            background: #f0f4f8;
+            border: 1px solid #bcccdc;
+            color: #102a43;
+        }
+        
+        body.light-mode .input-group textarea:focus {
+            border-color: #337ea9;
+            background: #ffffff;
+        }
+
+        body.light-mode .result-section,
+        body.light-mode .history-content,
+        body.light-mode .help-content,
+        body.light-mode .announcement-content,
+        body.light-mode .confirm-content {
+            background: #ffffff;
+            border: 1px solid #bcccdc;
+            color: #102a43;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        body.light-mode .result-section.error {
+            background: #ffe3e3;
+            border: 1px solid #ffb3b3;
+        }
+        
+        body.light-mode .error-message {
+            background: #fff5f5;
+            color: #c53030;
+            border: 1px solid #fc8181;
+        }
+        
+        body.light-mode .history-item {
+            background: #f0f4f8;
+            border: 1px solid #d9e2ec;
+        }
+        
+        body.light-mode .history-text {
+            color: #102a43;
+        }
+
+        body.light-mode .light-cord {
+            background: linear-gradient(to bottom, #999, #337ea9);
+            box-shadow: none;
+        }
+        
+        body.light-mode .light-handle {
+            background: radial-gradient(circle at 30% 30%, #54a0b6, #337ea9);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2), inset 0 0 5px rgba(255,255,255,0.8);
+        }
+        
+        body.light-mode .light-switch-container::after {
+            background: rgba(255, 255, 255, 0.9);
+            color: #337ea9;
+            border: 1px solid #bcccdc;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        body.light-mode .copy-btn {
+             color: #ffffff;
+             text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        body.light-mode .help-content li:before {
+            color: #337ea9;
+        }
+        
+        body.light-mode .announcement-content h2,
+        body.light-mode .help-content h2,
+        body.light-mode .history-content h2,
+        body.light-mode .confirm-content h3 {
+             color: #337ea9;
+        }
+        
+        body.light-mode .announcement-text {
+            color: #243b53;
+        }
+        
+        body.light-mode .footer span,
+        body.light-mode .footer a {
+            color: #486581 !important;
+        }
     </style>
 </head>
 <body>
+    <div class="light-switch-container" id="lightSwitch" onclick="toggleLightMode()" data-tooltip="点击开灯">
+        <div class="light-cord"></div>
+        <div class="light-handle"></div>
+    </div>
+    
     <button class="help-btn" onclick="showHelp()">?</button>
     <div class="help-modal" id="help-modal">
         <div class="help-content">
@@ -698,7 +888,7 @@
     <div class="history-modal" id="history-modal">
         <div class="history-content">
             <button class="close-history" onclick="hideHistory()">×</button>
-            <h2>📋 生成历史 <span style="font-size: 0.6em; color: #e0e0e0;">（会过期，请及时保存）</span></h2>
+            <h2>📋 生成历史 <span style="font-size: 0.6em; color: #ecf0f1;">（会过期，请及时保存）</span></h2>
             <div class="history-list" id="history-list">
                 <p style="color: #999; text-align: center; padding: 20px;">暂无历史记录</p>
             </div>
@@ -751,7 +941,7 @@
 
             <div style="display: flex; gap: 10px;">
                 <button class="generate-btn" onclick="generateSpeech()" style="flex: 1;">🎤 生成语音</button>
-                <button class="history-btn" onclick="showHistory()" style="background: linear-gradient(90deg, #65a6bc, #87cfde); color: white; border: none; padding: 15px 20px; font-size: 16px; border-radius: 10px; cursor: pointer; transition: transform 0.3s; font-weight: 600; white-space: nowrap;">📋 历史</button>
+                <button class="history-btn" onclick="showHistory()" style="background: linear-gradient(90deg, #66a7bd, #88cfde); color: white; border: none; padding: 15px 20px; font-size: 16px; border-radius: 10px; cursor: pointer; transition: transform 0.3s; font-weight: 600; white-space: nowrap;">📋 历史</button>
             </div>
         </div>
 
@@ -1098,6 +1288,40 @@
             }
         });
 
+    
+        // 灯绳开关逻辑
+        function toggleLightMode() {
+            const body = document.body;
+            const switchEl = document.getElementById('lightSwitch');
+            
+            body.classList.toggle('light-mode');
+            
+            // 播放开关音效（可选，暂不添加音频文件，只做视觉交互）
+            
+            // 更新提示文字
+            if (body.classList.contains('light-mode')) {
+                switchEl.setAttribute('data-tooltip', '点击关灯');
+                localStorage.setItem('theme', 'light');
+            } else {
+                switchEl.setAttribute('data-tooltip', '点击开灯');
+                localStorage.setItem('theme', 'dark');
+            }
+            
+            // 添加拉动动画类
+            switchEl.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                switchEl.style.transform = '';
+            }, 200);
+        }
+        
+        // 初始化主题
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                document.getElementById('lightSwitch').setAttribute('data-tooltip', '点击关灯');
+            }
+        });
     </script>
     
     <div class="footer">

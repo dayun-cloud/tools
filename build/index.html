@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://img.dayun.cool/_dayun/tools.ico">
+    <link rel="icon" href="tools.ico">
     <title>在线工具站</title>
     <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #87cfde;
-            --primary-dark: #65a6bc;
-            --background-dark: #0f0f23;
-            --card-dark: #1a1a2e;
-            --card-hover: #2d2d4d;
-            --text-primary: #ffffff;
-            --text-secondary: #d1d5db;
+            --primary-color: #88cfde;
+            --primary-dark: #66a7bd;
+            --background-dark: #050505;
+            --card-dark: #1e2532;
+            --card-hover: #2c3545;
+            --text-primary: #ecf0f1;
+            --text-secondary: #bdc3c7;
+            --border-color: rgba(136, 207, 222, 0.15);
         }
 
 
@@ -26,7 +27,8 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--background-dark);
+            background: radial-gradient(circle at 50% 0%, #1a2236 0%, #050505 100%);
+            background-attachment: fixed;
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
@@ -53,6 +55,7 @@
             font-size: 2.4rem;
             background: linear-gradient(90deg, #65a6bc, #87cfde);
             -webkit-background-clip: text;
+            text-shadow: 0 0 20px rgba(136, 207, 222, 0.3);
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-right: 20px; /* Add some space between logo and title */
@@ -63,6 +66,7 @@
             margin-bottom: 0; /* Remove bottom margin from h1 */
             background: linear-gradient(90deg, #65a6bc, #87cfde);
             -webkit-background-clip: text;
+            text-shadow: 0 0 20px rgba(136, 207, 222, 0.3);
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
@@ -83,18 +87,19 @@
         .search-input {
             width: 100%;
             padding: 15px 20px;
-            border: none;
+            border: 1px solid #2d3b4e;
             border-radius: 50px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            background: #080a0f;
             color: var(--text-primary);
             font-size: 1rem;
             outline: none;
             transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .search-input:focus {
-            background: rgba(255, 255, 255, 0.15);
+            background: #0f141c;
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 2px var(--primary-color);
         }
 
@@ -113,12 +118,14 @@
         .container {
             width: 100%;
             max-width: 1200px;
-            background: rgba(26, 26, 46, 0.8);
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            max-height: 70vh; /* Set a maximum height */
-            overflow-y: auto; /* Enable vertical scrolling */
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 40px rgba(102, 167, 189, 0.05), 0 20px 40px rgba(0,0,0,0.6);
+            max-height: 70vh;
+            overflow-y: auto;
         }
 
         .button-container {
@@ -132,10 +139,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 15px 5px;
+            padding: 20px 10px;
             background: var(--card-dark);
             color: var(--text-primary);
-            border: none;
+            border: 1px solid var(--border-color);
             border-radius: 15px;
             cursor: pointer;
             font-weight: 600;
@@ -144,7 +151,8 @@
             position: relative;
             overflow: hidden;
             text-decoration: none;
-            min-height: 120px;
+            min-height: 140px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .nav-button::before {
@@ -165,6 +173,8 @@
         .nav-button:hover {
             transform: translateY(-5px);
             background: var(--card-hover);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(136, 207, 222, 0.15);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
 
@@ -228,17 +238,17 @@
         }
 
         .container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
+            background: #080a0f;
             border-radius: 10px;
         }
 
         .container::-webkit-scrollbar-thumb {
-            background: #515160;
+            background: #1e293b;
             border-radius: 10px;
         }
 
         .container::-webkit-scrollbar-thumb:hover {
-            background: #868695;
+            background: #2c3e50;
         }
     </style>
 </head>
@@ -259,7 +269,7 @@
 
     <div class="container">
         <div class="button-container">
-            <a href="manbo.html" class="nav-button">
+            <a href="manbo.html" class="nav-button" target="_blank">
                 <div class="button-icon">
                     <i class="fas fa-microphone-alt"></i>
                 </div>
@@ -267,7 +277,7 @@
                 <div class="button-desc">AI语音生成工具</div>
             </a>
             
-            <a href="ranking.html" class="nav-button">
+            <a href="ranking.html" class="nav-button" target="_blank">
                 <div class="button-icon">
                     <i class="fas fa-chart-bar"></i>
                 </div>
@@ -275,7 +285,7 @@
                 <div class="button-desc">图表模板工具</div>
             </a>
 
-            <a href="https://dreamifly.com/zh" class="nav-button">
+            <a href="https://dreamifly.com/zh" class="nav-button" target="_blank">
                 <div class="button-icon">
                     <i class="fas fa-image"></i>
                 </div>
@@ -284,7 +294,7 @@
             </a>
 
             
-            <a href="https://www.icoconverter.com/" class="nav-button">
+            <a href="https://www.icoconverter.com/" class="nav-button" target="_blank">
                 <div class="button-icon">
                     <i class="fas fa-file-image"></i>
                 </div>
@@ -292,7 +302,7 @@
                 <div class="button-desc">在线图标转换（第三方）</div>
             </a>
 
-            <a href="https://docsmall.com/image-compress" class="nav-button">
+            <a href="https://docsmall.com/image-compress" class="nav-button" target="_blank">
                 <div class="button-icon">
                     <i class="fas fa-image"></i>
                 </div>
@@ -300,7 +310,7 @@
                 <div class="button-desc">在线图片压缩（第三方）</div>
             </a>
             
-            <a href="https://squoosh.app/" class="nav-button">
+            <a href="https://squoosh.app/" class="nav-button" target="_blank">
                 <div class="button-icon">
                     <i class="fas fa-image"></i>
                 </div>
@@ -308,7 +318,7 @@
                 <div class="button-desc">在线图片压缩，谷歌开发的（第三方）</div>
             </a>
 
-            <a href="https://snapany.com/zh" class="nav-button">
+            <a href="https://snapany.com/zh" class="nav-button" target="_blank">
                 <div class="button-icon">
                     <i class="fas fa-paperclip"></i>
                 </div>
@@ -318,7 +328,7 @@
 
             <!-- 可以继续添加更多按钮 -->
              
-            <a href="#" class="nav-button">
+            <a href="#" class="nav-button" target="_blank">
                 <div class="button-icon">
                     <i class="fas fa-plus"></i>
                 </div>
@@ -331,7 +341,7 @@
     <div class="footer">
         <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding: 0 12px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#999'">联系方式</a>
         <span style="color: #999; padding-left: 12px; border-right: 1px solid #666; padding-right: 15px;">© 2025 大沄</span>
-        <span style="color: #999; padding-left: 12px;">持续更新中v1.1.5</span>
+        <span style="color: #999; padding-left: 12px;">持续更新中v1.2.1</span>
     </div>
 
     <script>
@@ -358,16 +368,15 @@
             // 添加点击动画效果
             navButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
-                    e.preventDefault();
                     const href = this.getAttribute('href');
+                    if (href === '#') {
+                        e.preventDefault();
+                    }
                     
                     // 添加点击动画
                     this.style.transform = 'scale(0.95)';
-                    
                     setTimeout(() => {
-                        if (href !== '#') {
-                            window.location.href = href;
-                        }
+                        this.style.transform = 'scale(1)';
                     }, 150);
                 });
             });
