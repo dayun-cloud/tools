@@ -609,7 +609,9 @@
             backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 15px;
-            max-width: 500px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
             width: 90%;
             color: #ecf0f1;
             position: relative;
@@ -912,7 +914,7 @@
                 <li>在音频播放组件右边更多选项里点击下载</li>
             </ul>
             <div class="ranking-link">
-                <p><a href="ranking.html" style="margin-right: 30px;" target="_blank">🎯 前往从夯到拉排行榜</a><a href="/">🏠 回到主站</a></p>
+                <p><a href="ranking" style="margin-right: 30px;" target="_blank">🎯 前往从夯到拉排行榜</a><a href="/">🏠 回到主站</a></p>
             </div>
         </div>
     </div>
@@ -967,8 +969,8 @@
 
         <div class="input-section">
             <div class="input-group">
-                <label for="textInput">输入要转换的文字：</label>
-                <textarea id="textInput" placeholder="请输入您想要转换为语音的文字..."></textarea>
+                <label for="textInput">文本内容：</label>
+                <textarea id="textInput" placeholder="请输入您想要转换为语音的文本...300字符以内"></textarea>
             </div>
 
             <div style="display: flex; gap: 10px;">
@@ -991,12 +993,13 @@
            
         // 公告配置
         const ANNOUNCEMENT_CONFIG = {
-            version: '3', // 公告版本号，当需要显示新公告时更新此版本号
-            title: '📢 重要公告',
+            version: '5', // 公告版本号，当需要显示新公告时更新此版本号
+            title: '📢 重要通知',
             content: `
-                <p>- 新增了暗色/亮色主题，点击左上角“开/关灯”切换。</p>
-                <p>- 生成语音是通过api.milorapart.top提供的api服务。</p>
-                <p>- 如果提示网络错误都是api站出现问题。需要等待站长修复，具体时间未知。</p>
+            <p>在考虑做成桌面软件，支持批量生成语音。以此解决文本长度限制问题。如果你有需要或者其他建议，<a href="https://www.bilibili.com/video/BV1GaHhzEEQq/" target="_blank" style="color: #88cfde; text-decoration: underline;">点击在置顶评论里留言</a>，如果人多我会开始开发！纯为爱发电，感谢支持！🫰</p>
+            <p style="color: #4f794a; margin-top: 10px;"><strong>近期更新公告：</strong></p>
+            <p>· 新增了 暗色/亮色 主题，点击左上角“开/关灯”切换。</p>
+            <p>· 语音生成功能是通过api.milorapart.top提供的api服务，如果提示网络错误很可能是api站出现问题，需要等待站长修复，具体时间未知。</p>
             `
         };
 
