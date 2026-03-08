@@ -8,8 +8,9 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #1a1a2e;
-            color: #e0e0e0;
+            background: radial-gradient(circle at 50% 0%, #1a2236 0%, #050505 100%);
+            background-attachment: fixed;
+            color: #ecf0f1;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -18,34 +19,43 @@
             flex-direction: column;
             text-align: center;
         }
-        .container {
-            background-color: #2d2d44;
-            padding: 20px 50px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            border: 1px solid #3d3d5c;
+                .container {
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 40px 60px;
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(102, 167, 189, 0.05), 0 20px 40px rgba(0,0,0,0.6);
+            border: 1px solid rgba(136, 207, 222, 0.15);
         }
-        h1 {
-            font-size: 5em;
-            color: #87cfde;
+                h1 {
+            font-size: 6em;
             margin: 20px;
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
+            -webkit-background-clip: text;
+            text-shadow: 0 0 30px rgba(136, 207, 222, 0.3);
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
         }
-        p {
+                p {
             font-size: 1.2em;
             margin-bottom: 30px;
+            color: #bdc3c7;
         }
-        a {
+                a {
             display: inline-block;
-            background: linear-gradient(90deg, #65a6bc, #87cfde);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 5px;
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
+            color: #0a0c12;
+            padding: 15px 30px;
+            border-radius: 10px;
             text-decoration: none;
-            font-weight: bold;
-            transition: transform 0.3s ease;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
         a:hover {
             transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(136, 207, 222, 0.4);
         }
     </style>
 </head>

@@ -349,6 +349,34 @@
             z-index: 50;
         }
 
+        .footer a {
+            color: #999;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: #88cfde;
+        }
+
+        .footer-link.contact-link {
+            padding: 0 15px;
+            border-right: 1px solid #666;
+        }
+
+        .footer-text {
+            padding-left: 15px;
+        }
+
+        .copyright-text {
+            padding-right: 15px;
+            border-right: 1px solid #666;
+        }
+
+        .footer-link.bilibili-link {
+            padding-left: 15px;
+        }
+
         .history-modal {
             position: fixed;
             top: 0;
@@ -857,7 +885,11 @@
         
         body.light-mode .footer span,
         body.light-mode .footer a {
-            color: #486581 !important;
+            color: #000000 !important;
+        }
+        
+        body.light-mode .footer a:hover {
+            color: #337ea9 !important;
         }
     </style>
 </head>
@@ -1325,8 +1357,8 @@
     </script>
     
     <div class="footer">
-        <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding: 0 15px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#999'">联系方式</a>
-        <span style="color: #999; padding-left: 15px;">© 2025 大沄</span>
+        <a href="https://hi.dayun.cool/contact" target="_blank" class="footer-link contact-link">联系方式</a>
+        <span class="footer-text"><span class="copyright-text">© 2025-2026 大沄</span><a href='https://space.bilibili.com/192702710' target='_blank' class="footer-link bilibili-link">bilibili</a></span>
     </div>
 </body>
 </html>
