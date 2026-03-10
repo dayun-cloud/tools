@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1200, initial-scale=1.0">
-    <link rel="icon" href="hang.png">
+    <link rel="icon" href="assets/hang.png">
     <title>从夯到拉排行榜</title>
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -1029,7 +1029,27 @@
                     draggedElement.remove();
                 } else if (tier) {
                     const tierContent = tier.querySelector('.tier-content');
-                    tierContent.appendChild(draggedElement);
+                    
+                    // 确定插入位置
+                    const imageBelow = elementBelow?.closest('.image-item');
+                    if (imageBelow === draggedElement) {
+                        // 拖拽回原位，不做任何处理
+                    } else if (imageBelow && imageBelow.parentElement === tierContent) {
+                        const rect = imageBelow.getBoundingClientRect();
+                        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                        if (isAfter) {
+                            if (imageBelow.nextSibling) {
+                                tierContent.insertBefore(draggedElement, imageBelow.nextSibling);
+                            } else {
+                                tierContent.appendChild(draggedElement);
+                            }
+                        } else {
+                            tierContent.insertBefore(draggedElement, imageBelow);
+                        }
+                    } else {
+                        tierContent.appendChild(draggedElement);
+                    }
+                    
                     // 如果启用了固定高度，调整图片大小
                     if (fixedHeightSetting) {
                         // 重置拖拽图片的样式
@@ -1039,7 +1059,25 @@
                         adjustImageSizes(tier);
                     }
                 } else if (imageGallery && !deleteZone) {
-                    imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                    // 确定在图片库中的插入位置
+                    const imageBelow = elementBelow?.closest('.image-item');
+                    if (imageBelow === draggedElement) {
+                        // 拖拽回原位，不做任何处理
+                    } else if (imageBelow && imageBelow.parentElement === imageGallery) {
+                        const rect = imageBelow.getBoundingClientRect();
+                        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                        if (isAfter) {
+                            if (imageBelow.nextSibling && imageBelow.nextSibling !== imageGallery.querySelector('.upload-btn')) {
+                                imageGallery.insertBefore(draggedElement, imageBelow.nextSibling);
+                            } else {
+                                imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                            }
+                        } else {
+                            imageGallery.insertBefore(draggedElement, imageBelow);
+                        }
+                    } else {
+                        imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                    }
                 }
             } else {
                 // 如果没有拖拽，则是点击事件，显示放大图片
@@ -1099,7 +1137,27 @@
                     draggedElement.remove();
                 } else if (tier) {
                     const tierContent = tier.querySelector('.tier-content');
-                    tierContent.appendChild(draggedElement);
+                    
+                    // 确定插入位置
+                    const imageBelow = elementBelow?.closest('.image-item');
+                    if (imageBelow === draggedElement) {
+                        // 拖拽回原位，不做任何处理
+                    } else if (imageBelow && imageBelow.parentElement === tierContent) {
+                        const rect = imageBelow.getBoundingClientRect();
+                        const isAfter = (touch.clientX - rect.left) > (rect.width / 2);
+                        if (isAfter) {
+                            if (imageBelow.nextSibling) {
+                                tierContent.insertBefore(draggedElement, imageBelow.nextSibling);
+                            } else {
+                                tierContent.appendChild(draggedElement);
+                            }
+                        } else {
+                            tierContent.insertBefore(draggedElement, imageBelow);
+                        }
+                    } else {
+                        tierContent.appendChild(draggedElement);
+                    }
+                    
                     // 如果启用了固定高度，调整图片大小
                     if (fixedHeightSetting) {
                         // 重置拖拽图片的样式
@@ -1109,7 +1167,25 @@
                         adjustImageSizes(tier);
                     }
                 } else if (imageGallery && !deleteZone) {
-                    imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                    // 确定在图片库中的插入位置
+                    const imageBelow = elementBelow?.closest('.image-item');
+                    if (imageBelow === draggedElement) {
+                        // 拖拽回原位，不做任何处理
+                    } else if (imageBelow && imageBelow.parentElement === imageGallery) {
+                        const rect = imageBelow.getBoundingClientRect();
+                        const isAfter = (touch.clientX - rect.left) > (rect.width / 2);
+                        if (isAfter) {
+                            if (imageBelow.nextSibling && imageBelow.nextSibling !== imageGallery.querySelector('.upload-btn')) {
+                                imageGallery.insertBefore(draggedElement, imageBelow.nextSibling);
+                            } else {
+                                imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                            }
+                        } else {
+                            imageGallery.insertBefore(draggedElement, imageBelow);
+                        }
+                    } else {
+                        imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                    }
                 }
             } else {
                 // 如果没有拖拽，则是触摸事件，显示放大图片
@@ -2086,8 +2162,8 @@
         });
     </script>
     <div class="footer">
-        <a href="https://hi.dayun.cool/contact" target="_blank" style="color: #999; text-decoration: none; padding-right: 15px; border-right: 1px solid #666; transition: color 0.3s ease;" onmouseover="this.style.color='#88cfde'" onmouseout="this.style.color='#999'">联系方式</a>
-        <span style="color: #999; padding-left: 15px;"><span style="padding-right: 15px; border-right: 1px solid #666;">© 2025-2026 大沄</span><a href='https://space.bilibili.com/192702710' target='_blank' style='color: inherit; text-decoration: none; transition: color 0.3s ease; padding-left: 15px;' onmouseover="this.style.color='#88cfde'" onmouseout="this.style.color='inherit'">bilibili</a></span>
+        <a href="https://contact.dayun.cool" target="_blank" style="color: #999; text-decoration: none; padding-right: 15px; border-right: 1px solid #66666666; transition: color 0.3s ease;" onmouseover="this.style.color='#88cfde'" onmouseout="this.style.color='#999'">问题反馈</a>
+        <span style="color: #999; padding-left: 15px;"><span style="padding-right: 15px; border-right: 1px solid #66666666;">© 2025-2026 大沄</span><a href='https://space.bilibili.com/192702710' target='_blank' style='color: inherit; text-decoration: none; transition: color 0.3s ease; padding-left: 15px;' onmouseover="this.style.color='#88cfde'" onmouseout="this.style.color='inherit'">bilibili</a></span>
     </div>
 </body>
 </html>

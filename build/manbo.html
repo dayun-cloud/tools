@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="manbo.ico">
+    <link rel="icon" href="assets/manbo.ico">
     <title>曼波配音生成器</title>
     <style>
         * {
@@ -29,7 +29,7 @@
             padding: 20px;
             padding-top: 20px;
             margin-top: -30px;
-            color: #ecf0f1;
+            background-color: #121825;
             overflow-x: hidden;
         }
 
@@ -95,7 +95,7 @@
 
         .input-group textarea:focus {
             outline: none;
-            border-color: #88cfde;
+            border-color: #66a7bd;
         }
 
         .input-group textarea::-webkit-scrollbar {
@@ -180,9 +180,13 @@
             padding: 20px;
         }
 
+        .loading p {
+            color: #66a7bd;
+        }
+
         .loading-spinner {
             border: 4px solid #1e293b;
-            border-top: 4px solid #88cfde;
+            border-top: 4px solid #66a7bd;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -206,7 +210,7 @@
 
         .success-message {
             background: transparent;
-            color: #88cfde;
+            color: #66a7bd;
             padding: 0px 0 15px 0px;
             border-radius: 8px;
             margin: 15px 0;
@@ -281,7 +285,7 @@
         }
 
         .help-content h2 {
-            color: #88cfde;
+            color: #66a7bd;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -299,7 +303,7 @@
 
         .help-content li:before {
             content: "•";
-            color: #88cfde;
+            color: #66a7bd;
             font-weight: bold;
             position: absolute;
             left: 0;
@@ -328,7 +332,7 @@
         }
 
         .ranking-link a {
-            color: #88cfde;
+            color: #66a7bd;
             text-decoration: none;
             font-weight: 600;
         }
@@ -356,12 +360,12 @@
         }
 
         .footer a:hover {
-            color: #88cfde;
+            color: #66a7bd;
         }
 
         .footer-link.contact-link {
             padding: 0 15px;
-            border-right: 1px solid #666;
+            border-right: 1px solid #66666666;
         }
 
         .footer-text {
@@ -370,7 +374,7 @@
 
         .copyright-text {
             padding-right: 15px;
-            border-right: 1px solid #666;
+            border-right: 1px solid #66666666;
         }
 
         .footer-link.bilibili-link {
@@ -421,7 +425,7 @@
         }
 
         .history-list::-webkit-scrollbar-thumb {
-            background: #88cfde;
+            background: #66a7bd;
             border-radius: 4px;
         }
 
@@ -430,7 +434,7 @@
         }
 
         .history-content h2 {
-            color: #88cfde;
+            color: #66a7bd;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -470,7 +474,7 @@
         }
 
         .history-link {
-            color: #88cfde;
+            color: #66a7bd;
             text-decoration: none;
             font-size: 12px;
             word-break: break-all;
@@ -549,7 +553,7 @@
         }
 
         .confirm-content h3 {
-            color: #88cfde;
+            color: #66a7bd;
             margin-bottom: 15px;
         }
 
@@ -578,7 +582,7 @@
         }
 
         .confirm-btn.no {
-            background: #88cfde;
+            background: #66a7bd;
             color: #0a0c12;
         }
 
@@ -620,7 +624,7 @@
         }
 
         .announcement-content h2 {
-            color: #88cfde;
+            color: #66a7bd;
             margin-bottom: 20px;
             text-align: center;
             font-size: 1.5em;
@@ -738,8 +742,8 @@
         .light-cord {
             width: 2px;
             height: 120px;
-            background: linear-gradient(to bottom, #444, #88cfde);
-            box-shadow: 0 0 5px rgba(136, 207, 222, 0.5);
+            background: linear-gradient(to bottom, #444, #66a7bd);
+            box-shadow: 0 0 5px rgba(102, 167, 189, 0.5);
         }
 
         .light-handle {
@@ -760,7 +764,7 @@
             transform: translateX(-50%);
             margin-top: 10px;
             background: rgba(0, 0, 0, 0.8);
-            color: #88cfde;
+            color: #66a7bd;
             padding: 5px 10px;
             border-radius: 4px;
             font-size: 12px;
@@ -840,8 +844,8 @@
         }
         
         body.light-mode .history-item {
-            background: #f0f4f8;
-            border: 1px solid #d9e2ec;
+            background: #ebf1f4;
+            border: 1px solid #a7a7a7;
         }
         
         body.light-mode .history-text {
@@ -880,6 +884,10 @@
         body.light-mode .confirm-content h3 {
              color: #337ea9;
         }
+
+        body.light-mode .history-content h2 span {
+             color: #666 !important;
+        }
         
         body.light-mode .announcement-text {
             color: #243b53;
@@ -908,8 +916,11 @@
             <h2>📝 使用说明</h2>
             <ul>
                 <li>在文本框中输入要转换的文字内容</li>
-                <li>点击生成按钮，将调用API进行语音合成</li>
-                <li>桌面版（Windows）下载：<a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/曼波配音生成器.exe" target="_blank" style="color: #88cfde;">点击下载</a></li>
+                <li>点击生成按钮，将调用<a href="https://api.milorapart.top/" target="_blank" style="color: #66a7bd; text-decoration: none;">Milora</a>提供的API进行转换</li>
+                <li>如果API报错，为API接口问题，需要等待API站长修复，我无法解决。</li>
+                <li>临时接口，不会常开，一般API异常的时候我会启用。<br>API KEY在<a href="https://www.bilibili.com/video/BV1bMwwzkEmF/"target="_blank" style="color: #66a7bd;">B站曼波视频</a>置顶评论有：<a href="test" target="_blank" style="color: #66a7bd;">临时接口</a></li>
+                <li>桌面版（Windows）下载：<a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/请解压后运行.zip" target="_blank" style="color: #66a7bd;">点击下载</a></li>
+                <li>问题反馈：<a href="https://contact.dayun.cool" target="_blank" style="color: #66a7bd;">在线工单</a>（需要回复的请填邮箱，不然回不了）</li>
             </ul>
             <div class="ranking-link">
                 <p><a href="ranking" style="margin-right: 30px;" target="_blank">🎯 前往从夯到拉排行榜</a><a href="/">🏠 回到主站</a></p>
@@ -991,14 +1002,15 @@
            
         // 公告配置
         const ANNOUNCEMENT_CONFIG = {
-            version: '7', // 公告版本号，当需要显示新公告时更新此版本号
+            version: '10', // 公告版本号，当需要显示新公告时更新此版本号
             title: '重要通知',
             content: `
-            <p>🎉 桌面版（Windows）已开发完成，支持批量生成语音。欢迎体验！有问题和建议请在B站留言。
-            <br><br><a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/曼波配音生成器.exe" target="_blank" style="color: #88cfde;">软件下载</a>
-            &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://space.bilibili.com/192702710" target="_blank" style="color: #88cfde;">B站主页</a>
-            <br><p style="color: #4f794a; margin-top: 10px;"><strong>近期更新公告：</strong></p>
-            <p>· 新增了 “暗色/亮色“ 主题，点击左上角的 “开/关灯” 切换。</p>
+            <p>桌面版（Windows）已开发完成，支持批量生成语音。<br>新增100多种热门AI配音！欢迎体验！
+            <p><a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/请解压后运行.zip" target="_blank" style="color: #66a7bd;">软件下载</a>
+            &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://space.bilibili.com/192702710" target="_blank" style="color: #66a7bd;">B站主页</a>
+            &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://contact.dayun.cool" target="_blank" style="color: #66a7bd;">问题反馈</a>
+            <p style="color: #4f794a; margin-top: 10px;"><strong>近期更新公告：</strong></p>
+            <p>最近API总是异常，我部署了个轻量的TTS模型，效果还可以。<br>api-key是dayun-web-test<br>不会常开，应急使用：<a href="test" target="_blank" style="color: #66a7bd;">点击跳转</a>
                 `
             };
 
@@ -1036,11 +1048,15 @@
                 if (data.code === 200 && data.url) {
                     showSuccess(data.url, text);
                 } else {
-                    showError(data.msg || '生成失败，请重试');
+                    showError('API异常，生成失败。');
                 }
             } catch (error) {
                 console.error('请求失败:', error);
-                showError('网络请求失败，请检查网络连接');
+                if (!navigator.onLine) {
+                    showError('网络连接已断开，请检查您的网络设置');
+                } else {
+                    showError('API异常，生成失败。');
+                }
             } finally {
                 loading.style.display = 'none';
                 generateBtn.disabled = false;
@@ -1055,7 +1071,10 @@
             resultContent.innerHTML = `
                 <div class="success-message">
                     <h3>✅ 语音生成成功！</h3>
-                    <button class="copy-btn" onclick="downloadAudio('${audioUrl}', this)">⬇️ 下载音频</button>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/请解压后运行.zip" target="_blank" class="copy-btn" style="text-decoration: none;">💻 安装桌面版</a>
+                        <button class="copy-btn" onclick="downloadAudio('${audioUrl}', this)">⬇️ 下载音频</button>
+                    </div>
                 </div>
                 
                 <div class="audio-player">
@@ -1159,8 +1178,7 @@
             const record = {
                 text: shortText,
                 fullText: text,
-                url: audioUrl,
-                timestamp: new Date().toLocaleString()
+                url: audioUrl
             };
             history.unshift(record); // 添加到开头
             // 限制历史记录数量为50条
@@ -1279,8 +1297,7 @@
         function setAnnouncementData(version, dontShow = false) {
             const data = {
                 version: version,
-                dontShow: dontShow,
-                timestamp: new Date().toISOString()
+                dontShow: dontShow
             };
             localStorage.setItem('announcement_data', JSON.stringify(data));
         }
@@ -1360,7 +1377,7 @@
     </script>
     
     <div class="footer">
-        <a href="https://hi.dayun.cool/contact" target="_blank" class="footer-link contact-link">联系方式</a>
+        <a href="https://contact.dayun.cool" target="_blank" class="footer-link contact-link">问题反馈</a>
         <span class="footer-text"><span class="copyright-text">© 2025-2026 大沄</span><a href='https://space.bilibili.com/192702710' target='_blank' class="footer-link bilibili-link">bilibili</a></span>
     </div>
 </body>
