@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/rhyme.ico">
+    <title>押韵助手</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #121825; /* Prevent white flash on load */
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: radial-gradient(circle at 50% 0%, #1a2236 0%, #050505 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start; /* Align top */
+            justify-content: center;
+            padding: 20px;
+            padding-top: 10vh; /* Move container up, responsive */
+            color: #ecf0f1;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(102, 167, 189, 0.05), 0 20px 40px rgba(0,0,0,0.6);
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            border: 1px solid rgba(136, 207, 222, 0.15);
+            position: relative;
+            max-height: 85vh; /* Prevent overflowing screen */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+        
+        .back-btn:hover {
+            color: #88cfde;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
+            -webkit-background-clip: text;
+            text-shadow: 0 0 30px rgba(136, 207, 222, 0.2);
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #bdc3c7;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #2d3b4e;
+            border-radius: 10px;
+            font-size: 16px;
+            background: #080a0f;
+            color: #ecf0f1;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            min-width: 100px; /* Set min width */
+        }
+
+        .input-group input:focus {
+            border-color: #88cfde;
+            box-shadow: 0 0 0 2px rgba(136, 207, 222, 0.2);
+        }
+
+        .search-btn {
+            background: linear-gradient(90deg, #66a7bd, #88cfde);
+            color: white;
+            border: none;
+            padding: 0 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 207, 222, 0.3);
+        }
+
+        .search-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results-container {
+            max-height: 55vh; /* Fixed height for internal scroll */
+            overflow-y: auto; /* Enable scroll */
+            background: #080a0f;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(136, 207, 222, 0.1);
+            flex: 1; /* Allow growing to fill space */
+            flex-shrink: 1; /* Allow shrinking if needed */
+        }
+
+        /* Scrollbar styles */
+        .results-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .results-container::-webkit-scrollbar-track {
+            background: rgba(15, 20, 28, 0.85);
+            border-radius: 4px;
+        }
+        .results-container::-webkit-scrollbar-thumb {
+            background: #2d3b4e;
+            border-radius: 4px;
+        }
+        .results-container::-webkit-scrollbar-thumb:hover {
+            background: #88cfde;
+        }
+
+        .rhyme-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .rhyme-group {
+            width: 100%;
+        }
+
+        .group-title {
+            color: #bdc3c7;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(136, 207, 222, 0.15);
+            width: 100%;
+            text-align: left;
+        }
+
+        .group-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .rhyme-word {
+            color: #ecf0f1;
+            padding: 4px 0;
+            font-size: 16px;
+            cursor: text;
+            margin-right: 15px;
+            display: inline-block;
+            letter-spacing: 0.5px;
+            border-bottom: 1px dashed rgba(136, 207, 222, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .rhyme-word:hover {
+            color: #88cfde;
+            border-bottom-color: #88cfde;
+        }
+
+        .loading {
+            text-align: center;
+            color: #bdc3c7;
+            padding: 40px;
+            display: none;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 3px solid #1e293b;
+            border-top: 3px solid #88cfde;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #bdc3c7;
+            padding: 40px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        /* Removed Toast Notification styles */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        
+        <div class="header">
+            <h1>押韵助手</h1>
+            <p>输入关键词，寻找你的灵感</p>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="wordInput" placeholder="请输入想要押韵的词（如：花草）" autocomplete="off">
+            <button id="searchBtn" class="search-btn">查询押韵</button>
+        </div>
+
+        <div class="results-container">
+            <div id="loading" class="loading hidden">
+                <div class="loading-spinner"></div>
+                <p>正在寻找灵感...</p>
+            </div>
+            <div id="error" class="error-message"></div>
+            <div id="results" class="rhyme-list">
+                <div class="empty-state">
+                    <i class="fas fa-music" style="font-size: 2rem; margin-bottom: 10px; color: #2d3b4e;"></i>
+                    <p>输入词语并点击查询，结果将显示在这里</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('wordInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+
+        // Allow pressing Enter to search
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchRhymes();
+            }
+        });
+
+        searchBtn.addEventListener('click', searchRhymes);
+
+        async function searchRhymes() {
+            const word = input.value.trim();
+            if (!word) return;
+
+            // Reset UI
+            resultsDiv.style.display = 'none';
+            loadingDiv.classList.remove('hidden');
+            loadingDiv.style.display = 'flex'; // Restore flex display
+            errorDiv.style.display = 'none';
+            searchBtn.disabled = true;
+
+            try {
+                // Using the API endpoint provided
+                const response = await fetch(`https://api.milorapart.top/apis/rhyme/?text=${encodeURIComponent(word)}`);
+                
+                if (!response.ok) {
+                    throw new Error('网络请求失败');
+                }
+
+                const data = await response.json();
+
+                if (data.code === 200 && Array.isArray(data.data) && data.data.length > 0) {
+                    displayResults(data.data);
+                } else {
+                    showError('未找到相关的押韵词汇');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('查询出错，请稍后再试');
+            } finally {
+                loadingDiv.classList.add('hidden');
+                loadingDiv.style.display = 'none';
+                searchBtn.disabled = false;
+            }
+        }
+
+        function displayResults(words) {
+            resultsDiv.innerHTML = '';
+            resultsDiv.style.display = 'flex'; // Use flex for column layout
+            
+            const groups = {
+                1: { title: '单字', words: [] },
+                2: { title: '双字', words: [] },
+                3: { title: '三字', words: [] },
+                more: { title: '多字', words: [] }
+            };
+
+            let hasWords = false;
+
+            words.forEach(w => {
+                const cleanWord = w.trim();
+                if (!cleanWord) return;
+                
+                hasWords = true;
+                const len = cleanWord.length;
+                if (len === 1) groups[1].words.push(cleanWord);
+                else if (len === 2) groups[2].words.push(cleanWord);
+                else if (len === 3) groups[3].words.push(cleanWord);
+                else groups.more.words.push(cleanWord);
+            });
+
+            if (!hasWords) {
+                showError('未找到相关的押韵词汇');
+                return;
+            }
+
+            // Render groups
+            Object.keys(groups).forEach(key => {
+                const group = groups[key];
+                if (group.words.length === 0) return;
+
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'rhyme-group';
+                
+                const title = document.createElement('div');
+                title.className = 'group-title';
+                title.textContent = group.title;
+                groupDiv.appendChild(title);
+
+                const content = document.createElement('div');
+                content.className = 'group-content';
+                
+                group.words.forEach(word => {
+                    const wordDiv = document.createElement('div');
+                    wordDiv.className = 'rhyme-word';
+                    wordDiv.textContent = word;
+                    // Removed click event listener
+                    content.appendChild(wordDiv);
+                });
+
+                groupDiv.appendChild(content);
+                resultsDiv.appendChild(groupDiv);
+            });
+        }
+
+        function showError(msg) {
+            resultsDiv.style.display = 'none';
+            errorDiv.textContent = msg;
+            errorDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="manbo.ico">
+    <link rel="icon" href="assets/manbo.ico">
     <title>曼波配音生成器</title>
     <style>
         * {
@@ -29,7 +29,7 @@
             padding: 20px;
             padding-top: 20px;
             margin-top: -30px;
-            color: #ecf0f1;
+            background-color: #121825;
             overflow-x: hidden;
         }
 
@@ -95,7 +95,7 @@
 
         .input-group textarea:focus {
             outline: none;
-            border-color: #88cfde;
+            border-color: #66a7bd;
         }
 
         .input-group textarea::-webkit-scrollbar {
@@ -182,7 +182,7 @@
 
         .loading-spinner {
             border: 4px solid #1e293b;
-            border-top: 4px solid #88cfde;
+            border-top: 4px solid #66a7bd;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -206,7 +206,7 @@
 
         .success-message {
             background: transparent;
-            color: #88cfde;
+            color: #66a7bd;
             padding: 0px 0 15px 0px;
             border-radius: 8px;
             margin: 15px 0;
@@ -281,7 +281,7 @@
         }
 
         .help-content h2 {
-            color: #88cfde;
+            color: #66a7bd;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -299,7 +299,7 @@
 
         .help-content li:before {
             content: "•";
-            color: #88cfde;
+            color: #66a7bd;
             font-weight: bold;
             position: absolute;
             left: 0;
@@ -328,7 +328,7 @@
         }
 
         .ranking-link a {
-            color: #88cfde;
+            color: #66a7bd;
             text-decoration: none;
             font-weight: 600;
         }
@@ -356,7 +356,7 @@
         }
 
         .footer a:hover {
-            color: #88cfde;
+            color: #66a7bd;
         }
 
         .footer-link.contact-link {
@@ -421,7 +421,7 @@
         }
 
         .history-list::-webkit-scrollbar-thumb {
-            background: #88cfde;
+            background: #66a7bd;
             border-radius: 4px;
         }
 
@@ -430,7 +430,7 @@
         }
 
         .history-content h2 {
-            color: #88cfde;
+            color: #66a7bd;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -470,7 +470,7 @@
         }
 
         .history-link {
-            color: #88cfde;
+            color: #66a7bd;
             text-decoration: none;
             font-size: 12px;
             word-break: break-all;
@@ -549,7 +549,7 @@
         }
 
         .confirm-content h3 {
-            color: #88cfde;
+            color: #66a7bd;
             margin-bottom: 15px;
         }
 
@@ -578,7 +578,7 @@
         }
 
         .confirm-btn.no {
-            background: #88cfde;
+            background: #66a7bd;
             color: #0a0c12;
         }
 
@@ -620,7 +620,7 @@
         }
 
         .announcement-content h2 {
-            color: #88cfde;
+            color: #66a7bd;
             margin-bottom: 20px;
             text-align: center;
             font-size: 1.5em;
@@ -738,8 +738,8 @@
         .light-cord {
             width: 2px;
             height: 120px;
-            background: linear-gradient(to bottom, #444, #88cfde);
-            box-shadow: 0 0 5px rgba(136, 207, 222, 0.5);
+            background: linear-gradient(to bottom, #444, #66a7bd);
+            box-shadow: 0 0 5px rgba(102, 167, 189, 0.5);
         }
 
         .light-handle {
@@ -760,7 +760,7 @@
             transform: translateX(-50%);
             margin-top: 10px;
             background: rgba(0, 0, 0, 0.8);
-            color: #88cfde;
+            color: #66a7bd;
             padding: 5px 10px;
             border-radius: 4px;
             font-size: 12px;
@@ -840,8 +840,8 @@
         }
         
         body.light-mode .history-item {
-            background: #f0f4f8;
-            border: 1px solid #d9e2ec;
+            background: #ebf1f4;
+            border: 1px solid #a7a7a7;
         }
         
         body.light-mode .history-text {
@@ -880,6 +880,10 @@
         body.light-mode .confirm-content h3 {
              color: #337ea9;
         }
+
+        body.light-mode .history-content h2 span {
+             color: #666 !important;
+        }
         
         body.light-mode .announcement-text {
             color: #243b53;
@@ -909,7 +913,7 @@
             <ul>
                 <li>在文本框中输入要转换的文字内容</li>
                 <li>点击生成按钮，将调用API进行语音合成</li>
-                <li>桌面版（Windows）下载：<a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/曼波配音生成器.exe" target="_blank" style="color: #88cfde;">点击下载</a></li>
+                <li>桌面版（Windows）下载：<a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/曼波配音生成器.exe" target="_blank" style="color: #66a7bd;">点击下载</a></li>
             </ul>
             <div class="ranking-link">
                 <p><a href="ranking" style="margin-right: 30px;" target="_blank">🎯 前往从夯到拉排行榜</a><a href="/">🏠 回到主站</a></p>
@@ -995,8 +999,8 @@
             title: '重要通知',
             content: `
             <p>🎉 桌面版（Windows）已开发完成，支持批量生成语音。欢迎体验！有问题和建议请在B站留言。
-            <br><br><a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/曼波配音生成器.exe" target="_blank" style="color: #88cfde;">软件下载</a>
-            &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://space.bilibili.com/192702710" target="_blank" style="color: #88cfde;">B站主页</a>
+            <br><br><a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/曼波配音生成器.exe" target="_blank" style="color: #66a7bd;">软件下载</a>
+            &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://space.bilibili.com/192702710" target="_blank" style="color: #66a7bd;">B站主页</a>
             <br><p style="color: #4f794a; margin-top: 10px;"><strong>近期更新公告：</strong></p>
             <p>· 新增了 “暗色/亮色“ 主题，点击左上角的 “开/关灯” 切换。</p>
                 `
