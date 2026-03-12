@@ -365,7 +365,7 @@
 
         .footer-link.contact-link {
             padding: 0 15px;
-            border-right: 1px solid #666;
+            border-right: 1px solid #66666666;
         }
 
         .footer-text {
@@ -374,7 +374,7 @@
 
         .copyright-text {
             padding-right: 15px;
-            border-right: 1px solid #666;
+            border-right: 1px solid #66666666;
         }
 
         .footer-link.bilibili-link {
@@ -918,6 +918,7 @@
                 <li>在文本框中输入要转换的文字内容</li>
                 <li>点击生成按钮，将调用API进行语音合成</li>
                 <li>桌面版（Windows）下载：<a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/请解压后运行.zip" target="_blank" style="color: #66a7bd;">点击下载</a></li>
+                <li>问题反馈：<a href="https://contact.dayun.cool" target="_blank" style="color: #66a7bd;">在线工单</a></li>
             </ul>
             <div class="ranking-link">
                 <p><a href="ranking" style="margin-right: 30px;" target="_blank">🎯 前往从夯到拉排行榜</a><a href="/">🏠 回到主站</a></p>
@@ -999,12 +1000,13 @@
            
         // 公告配置
         const ANNOUNCEMENT_CONFIG = {
-            version: '7', // 公告版本号，当需要显示新公告时更新此版本号
+            version: '8', // 公告版本号，当需要显示新公告时更新此版本号
             title: '重要通知',
             content: `
-            <p>🎉 桌面版（Windows）已开发完成，支持批量生成语音。欢迎体验！有问题和建议请在B站留言。
+            <p>🎉 桌面版（Windows）已开发完成，支持批量生成语音。<br>新增100多种热门AI配音！欢迎体验！
             <br><br><a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/请解压后运行.zip" target="_blank" style="color: #66a7bd;">软件下载</a>
             &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://space.bilibili.com/192702710" target="_blank" style="color: #66a7bd;">B站主页</a>
+            &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://contact.dayun.cool" target="_blank" style="color: #66a7bd;">问题反馈</a>
             <br><p style="color: #4f794a; margin-top: 10px;"><strong>近期更新公告：</strong></p>
             <p>· 新增了 “暗色/亮色“ 主题，点击左上角的 “开/关灯” 切换。</p>
                 `
@@ -1063,7 +1065,10 @@
             resultContent.innerHTML = `
                 <div class="success-message">
                     <h3>✅ 语音生成成功！</h3>
-                    <button class="copy-btn" onclick="downloadAudio('${audioUrl}', this)">⬇️ 下载音频</button>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/请解压后运行.zip" target="_blank" class="copy-btn" style="text-decoration: none;">💻 安装桌面版</a>
+                        <button class="copy-btn" onclick="downloadAudio('${audioUrl}', this)">⬇️ 下载音频</button>
+                    </div>
                 </div>
                 
                 <div class="audio-player">
