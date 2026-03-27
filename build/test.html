@@ -418,7 +418,7 @@
 
   <!-- 输入文本 -->
   <div class="field">
-    <label class="field-label" for="textInput">待合成文本</label>
+    <label class="field-label" for="textInput">待生成文本</label>
     <textarea
       id="textInput"
       placeholder="在此输入文本，最多 800 字…"
@@ -444,14 +444,14 @@
   </div>
 
   <!-- 提交 -->
-  <button class="btn" id="synthBtn" type="button">合成语音</button>
+  <button class="btn" id="synthBtn" type="button">生成语音</button>
 
   <!-- 提示 -->
   <div class="msg" id="msgBox"></div>
 
   <!-- 音频播放 -->
   <div class="audio-section" id="audioSection">
-    <div class="audio-label">生成的音频 （请及时保存，刷新后将丢失）</div>
+    <div class="audio-label">生成效果不满意的话在结尾加句号重新生成</div>
     <div class="waveform-wrap" id="waveformWrap" title="点击播放/暂停">
       <div class="waveform-progress" id="waveformProgress"></div>
       <canvas class="waveform-canvas" id="waveformCanvas"></canvas>
@@ -545,7 +545,7 @@
     toggleKey.textContent = keyVisible ? '隐藏' : '显示';
   });
 
-  // ── 合成 ──
+  // ── 生成 ──
   function setMsg(text, type = '') {
     msgBox.textContent = text;
     msgBox.className = 'msg' + (type ? ' ' + type : '');
@@ -556,7 +556,7 @@
     const key  = apiKeyInput.value.trim();
 
     if (!text) {
-      setMsg('请输入待合成的文本', 'err');
+      setMsg('请输入待生成的文本', 'err');
       return;
     }
     if (text.length > 800) {
@@ -571,7 +571,7 @@
     // 状态：加载中
     synthBtn.disabled   = true;
     synthBtn.classList.add('loading');
-    synthBtn.textContent = '合成中…（速度受字数和排队人数影响）';
+    synthBtn.textContent = '生成中…（速度受字数和排队人数影响）';
     setMsg('');
     audioSection.classList.remove('visible');
     downloadBtn.classList.remove('visible');
@@ -597,7 +597,7 @@
         return;
       }
       if (!resp.ok) {
-        setMsg(`合成失败 (${resp.status})`, 'err');
+        setMsg(`生成失败 (${resp.status})`, 'err');
         return;
       }
 
@@ -608,7 +608,7 @@
       audioPlayer.src = url;
       audioSection.classList.add('visible');
       downloadBtn.classList.add('visible');
-      setMsg('合成完成', 'ok');
+      setMsg('生成完成', 'ok');
       drawWaveform(url);
 
     } catch (e) {
@@ -616,7 +616,7 @@
     } finally {
       synthBtn.disabled   = false;
       synthBtn.classList.remove('loading');
-      synthBtn.textContent = '合成语音';
+      synthBtn.textContent = '生成语音';
     }
   });
 
