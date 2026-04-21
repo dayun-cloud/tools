@@ -121,6 +121,46 @@
             color: #888;
         }
 
+        /* 字符计数器样式 */
+        .char-counter {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-size: 12px;
+            color: #666;
+            pointer-events: none;
+            transition: color 0.3s;
+        }
+
+        .char-counter.warning {
+            color: #e67e22;
+        }
+
+        .char-counter.danger {
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group textarea {
+            padding-bottom: 28px;
+        }
+
+        body.light-mode .char-counter {
+            color: #999;
+        }
+
+        body.light-mode .char-counter.warning {
+            color: #e67e22;
+        }
+
+        body.light-mode .char-counter.danger {
+            color: #cc0000;
+        }
 
         .generate-btn {
             width: 100%;
@@ -979,7 +1019,8 @@
         <div class="input-section">
             <div class="input-group">
                 <label for="textInput">文本内容：</label>
-                <textarea id="textInput" placeholder="请输入您想要转换为语音的文本...300字符以内"></textarea>
+                <textarea id="textInput" placeholder="请输入您想要转换为语音的文本...299字符以内"></textarea>
+                <div class="char-counter" id="charCounter">0/299</div>
             </div>
 
             <div style="display: flex; gap: 10px;">
@@ -1014,6 +1055,29 @@
                 `
             };
 
+        const MAX_CHARS = 299;
+
+        // 字符计数器初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.getElementById('textInput');
+            const counter = document.getElementById('charCounter');
+
+            function updateCounter() {
+                const len = textarea.value.length;
+                counter.textContent = len + '/' + MAX_CHARS;
+
+                counter.classList.remove('warning', 'danger');
+                if (len >= MAX_CHARS) {
+                    counter.classList.add('danger');
+                } else if (len >= MAX_CHARS * 0.8) {
+                    counter.classList.add('warning');
+                }
+            }
+
+            textarea.addEventListener('input', updateCounter);
+            updateCounter();
+        });
+
         // 页面加载时检查公告
         window.addEventListener('DOMContentLoaded', async () => {
             try {
@@ -1024,9 +1088,14 @@
         
         async function generateSpeech() {
             const text = document.getElementById('textInput').value.trim();
-            
+
             if (!text) {
-                alert('请输入要转换的文字！');
+                showError('请输入要转换的文字！');
+                return;
+            }
+
+            if (text.length > MAX_CHARS) {
+                showError('字数超限！当前 ' + text.length + ' 字，最多 ' + MAX_CHARS + ' 字。');
                 return;
             }
 
