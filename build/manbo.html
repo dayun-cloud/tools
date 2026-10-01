@@ -381,6 +381,14 @@
             text-decoration: underline;
         }
 
+        .ranking-links-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px 24px;
+        }
+
         .footer {
             position: fixed;
             bottom: 0;
@@ -404,6 +412,11 @@
         }
 
         .footer-link.contact-link {
+            padding: 0 15px;
+            border-right: 1px solid #66666666;
+        }
+
+        .footer-link.vkit-link {
             padding: 0 15px;
             border-right: 1px solid #66666666;
         }
@@ -963,7 +976,11 @@
                 <li>问题反馈：<a href="https://contact.dayun.cool" target="_blank" style="color: #66a7bd;">在线工单</a>（需要回复的请填邮箱，不然回不了）</li>
             </ul>
             <div class="ranking-link">
-                <p><a href="ranking" style="margin-right: 30px;" target="_blank">🎯 前往从夯到拉排行榜</a><a href="/">🏠 回到主站</a></p>
+                <div class="ranking-links-row">
+                    <a href="https://vkit-ai-video.dayun.cool/" target="_blank">🎬 VKit AI 视频生成</a>
+                    <a href="ranking" target="_blank">🎯 前往从夯到拉排行榜</a>
+                    <a href="/">🏠 回到主站</a>
+                </div>
             </div>
         </div>
     </div>
@@ -1043,9 +1060,10 @@
            
         // 公告配置
         const ANNOUNCEMENT_CONFIG = {
-            version: '13', // 公告版本号，当需要显示新公告时更新此版本号
+            version: '14', // 公告版本号，当需要显示新公告时更新此版本号
             title: '重要通知',
             content: `
+            <p>AI视频生成网站，MiniMax_H3模型，0.1元/秒 <a href="https://vkit-ai-video.dayun.cool/" target="_blank" style="color: #66a7bd;">点击前往</a></p>
             <p>桌面版（Windows）已开发完成，支持批量生成语音。<br>新增100多种热门AI配音！欢迎体验！
             <p><a href="https://gitee.com/dayuncloud/manbo/releases/download/latest/请解压后运行.zip" target="_blank" style="color: #66a7bd;">软件下载</a>
             &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://space.bilibili.com/192702710" target="_blank" style="color: #66a7bd;">B站主页</a>
@@ -1447,6 +1465,7 @@
     </script>
     
     <div class="footer">
+        <a href="https://vkit-ai-video.dayun.cool/" target="_blank" class="footer-link vkit-link">VKit视频生成</a>
         <a href="https://contact.dayun.cool" target="_blank" class="footer-link contact-link">问题反馈</a>
         <span class="footer-text"><span class="copyright-text">© 2025-2026 大沄</span><a href='https://space.bilibili.com/192702710' target='_blank' class="footer-link bilibili-link">bilibili</a></span>
     </div>
