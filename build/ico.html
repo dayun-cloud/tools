@@ -1,0 +1,2309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/tools.ico">
+    <title>ICO 图标转换工具</title>
+    <meta name="description" content="浏览器本地运行的 ICO 图标转换工具：图片转 ICO（多尺寸）、ICO 逐帧提取图片，不上传任何文件。">
+    <meta name="theme-color" content="#0b1017">
+    <style>
+        :root {
+            --accent-1: #66a7bd;
+            --accent-2: #88cfde;
+            --accent-grad: linear-gradient(100deg, #66a7bd 0%, #88cfde 100%);
+            --accent-soft: rgba(136, 207, 222, 0.12);
+            --accent-line: rgba(136, 207, 222, 0.22);
+            --panel: rgba(19, 25, 35, 0.72);
+            --panel-2: rgba(10, 14, 20, 0.55);
+            --text: #e8eef2;
+            --text-dim: #9db0bb;
+            --text-mute: #6b7c88;
+            --line: rgba(136, 207, 222, 0.13);
+            --mono: ui-monospace, SFMono-Regular, Consolas, 'Courier New', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #05070a;
+            background-image: radial-gradient(circle at 50% -10%, #16202e 0%, #05070a 55%);
+            background-attachment: fixed;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 背景光斑 */
+        .glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow-a {
+            top: -180px;
+            left: -120px;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, rgba(102, 167, 189, 0.22), transparent 70%);
+        }
+
+        .glow-b {
+            top: 220px;
+            right: -160px;
+            width: 520px;
+            height: 520px;
+            background: radial-gradient(circle, rgba(136, 207, 222, 0.12), transparent 70%);
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1420px;
+            padding: 26px 0 0;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        /* ---------- 顶栏 ---------- */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 0.86rem;
+            margin-bottom: 26px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 8px 15px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(19, 25, 35, 0.6);
+            transition: all 0.25s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent-2);
+            border-color: var(--accent-line);
+            transform: translateX(-2px);
+        }
+
+        .back-link svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .privacy {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-mute);
+            font-size: 0.8rem;
+        }
+
+        .privacy .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-2);
+            box-shadow: 0 0 0 0 rgba(136, 207, 222, 0.6);
+            animation: pulse 2.4s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(136, 207, 222, 0.45); }
+            70% { box-shadow: 0 0 0 9px rgba(136, 207, 222, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(136, 207, 222, 0); }
+        }
+
+        /* ---------- 头部 ---------- */
+        .hero {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(100deg, #65a6bc 0%, #b6e5f0 50%, #87cfde 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .hero-sub {
+            color: var(--text-dim);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .hero-points {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .hero-points li {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            padding: 6px 13px;
+            border-radius: 999px;
+            background: rgba(19, 25, 35, 0.66);
+            border: 1px solid var(--line);
+        }
+
+        .hero-points li::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent-grad);
+        }
+
+        .hl {
+            color: var(--accent-2);
+        }
+
+        /* ---------- 标签页 ---------- */
+        .tabs {
+            position: relative;
+            display: inline-flex;
+            gap: 4px;
+            margin: 0 auto 22px;
+            padding: 5px;
+            border-radius: 999px;
+            background: rgba(13, 18, 26, 0.8);
+            border: 1px solid var(--line);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-slider {
+            position: absolute;
+            top: 5px;
+            bottom: 5px;
+            left: 0;
+            width: 0;
+            border-radius: 999px;
+            background: var(--accent-grad);
+            box-shadow: 0 6px 20px rgba(136, 207, 222, 0.28);
+            transition: transform 0.34s cubic-bezier(0.4, 0, 0.2, 1), width 0.34s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .tabs.no-anim .tab-slider {
+            transition: none;
+        }
+
+        .tab {
+            position: relative;
+            z-index: 1;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 600;
+            padding: 11px 30px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: #08131a;
+            transition-delay: 0.1s;
+        }
+
+        /* ---------- 容器与两栏工作区 ---------- */
+        .container {
+            width: 100%;
+            background: linear-gradient(180deg, rgba(20, 26, 36, 0.88), rgba(12, 16, 23, 0.88));
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 22px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .panel.hidden {
+            display: none;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 366px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .rail {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: sticky;
+            top: 22px;
+        }
+
+        .main-col {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* ---------- 步骤卡片 ---------- */
+        .step {
+            background: var(--panel-2);
+            border: 1px solid rgba(136, 207, 222, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .step-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 13px;
+        }
+
+        .step-num {
+            flex: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--accent-2);
+            background: var(--accent-soft);
+            border: 1px solid var(--accent-line);
+        }
+
+        .step-title {
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .col-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding: 0 2px;
+        }
+
+        .col-head-text {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .col-head-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: none;
+        }
+
+        .col-title {
+            font-size: 0.94rem;
+            font-weight: 600;
+        }
+
+        .col-hint {
+            font-size: 0.78rem;
+            color: var(--text-mute);
+        }
+
+        /* ---------- 拖拽区 ---------- */
+        .dropzone {
+            border: 1.5px dashed rgba(136, 207, 222, 0.22);
+            border-radius: 14px;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(8, 11, 16, 0.5);
+        }
+
+        .dropzone:hover {
+            border-color: var(--accent-line);
+            background: rgba(136, 207, 222, 0.05);
+        }
+
+        .dropzone.dragover {
+            border-color: var(--accent-2);
+            border-style: solid;
+            background: rgba(136, 207, 222, 0.1);
+            box-shadow: 0 0 0 4px rgba(136, 207, 222, 0.08);
+        }
+
+        .dz-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 12px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-soft);
+            border: 1px solid var(--accent-line);
+        }
+
+        .dz-icon svg {
+            width: 21px;
+            height: 21px;
+            stroke: var(--accent-2);
+        }
+
+        .dz-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .dz-hint {
+            font-size: 0.76rem;
+            color: var(--text-mute);
+            line-height: 1.65;
+        }
+
+        .dz-action {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--accent-2);
+            border: 1px solid var(--accent-line);
+            background: rgba(136, 207, 222, 0.07);
+        }
+
+        .dropzone:hover .dz-action {
+            background: rgba(136, 207, 222, 0.16);
+        }
+
+        /* ---------- 尺寸选择 ---------- */
+        .presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-bottom: 11px;
+        }
+
+        .preset {
+            font-family: inherit;
+            font-size: 0.76rem;
+            color: var(--text-dim);
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(19, 25, 35, 0.7);
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+
+        .preset:hover {
+            color: var(--accent-2);
+            border-color: var(--accent-line);
+            background: rgba(136, 207, 222, 0.08);
+        }
+
+        .chips {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 7px;
+        }
+
+        .chip {
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            padding: 9px 4px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: rgba(8, 11, 16, 0.55);
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.22s ease;
+            text-align: center;
+        }
+
+        .chip:hover {
+            border-color: var(--accent-line);
+            color: var(--text);
+        }
+
+        .chip.active {
+            color: var(--accent-2);
+            font-weight: 700;
+            border-color: rgba(136, 207, 222, 0.5);
+            background: rgba(136, 207, 222, 0.13);
+            box-shadow: 0 0 16px rgba(136, 207, 222, 0.14) inset;
+        }
+
+        .setting-hint {
+            font-size: 0.74rem;
+            color: var(--text-mute);
+            line-height: 1.7;
+            margin-top: 10px;
+        }
+
+        /* ---------- 下拉框 ---------- */
+        .field + .field {
+            margin-top: 12px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 7px;
+        }
+
+        .select {
+            width: 100%;
+            padding: 11px 34px 11px 13px;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            background-color: rgba(8, 11, 16, 0.6);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2388cfde' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 11px center;
+            background-size: 15px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.86rem;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            transition: all 0.22s ease;
+        }
+
+        .select:hover {
+            border-color: var(--accent-line);
+        }
+
+        .select:focus {
+            border-color: var(--accent-2);
+            box-shadow: 0 0 0 3px rgba(136, 207, 222, 0.14);
+        }
+
+        .select option {
+            background: #131922;
+            color: var(--text);
+        }
+
+        /* ---------- 按钮 ---------- */
+        .btn {
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 11px;
+            border: 1px solid var(--line);
+            background: rgba(19, 25, 35, 0.8);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+
+        .btn:not(.primary):hover:not(:disabled) {
+            border-color: var(--accent-line);
+            background: rgba(136, 207, 222, 0.1);
+            color: var(--accent-2);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn.primary {
+            background: var(--accent-grad);
+            color: #08131a;
+            border-color: transparent;
+            box-shadow: 0 10px 24px rgba(102, 167, 189, 0.22);
+        }
+
+        .btn.primary:hover:not(:disabled) {
+            background: var(--accent-grad);
+            color: #08131a;
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(136, 207, 222, 0.32);
+        }
+
+        .btn.ghost {
+            background: transparent;
+            color: var(--text-dim);
+        }
+
+        .btn.small {
+            padding: 8px 15px;
+            font-size: 0.8rem;
+            border-radius: 9px;
+        }
+
+        .btn[hidden] {
+            display: none;
+        }
+
+        /* ---------- 结果卡片 ---------- */
+        .results {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .results:empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px dashed rgba(136, 207, 222, 0.14);
+            border-radius: 18px;
+            background: rgba(8, 11, 16, 0.35);
+        }
+
+        #results-toico:empty::after {
+            content: '转换后的 ICO 和各个尺寸的预览会出现在这里';
+        }
+
+        #results-fromico:empty::after {
+            content: '提取出来的每一帧会出现在这里';
+        }
+
+        .results:empty::after {
+            color: var(--text-mute);
+            font-size: 0.86rem;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, #171e29, #131922);
+            border: 1px solid rgba(136, 207, 222, 0.11);
+            border-radius: 18px;
+            padding: 18px;
+            transition: border-color 0.25s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(136, 207, 222, 0.5), transparent);
+        }
+
+        .card:hover {
+            border-color: rgba(136, 207, 222, 0.22);
+        }
+
+        .card-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 0.96rem;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .card-title-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 9px;
+        }
+
+        .card-head > div:first-child {
+            min-width: 0;
+        }
+
+        .card-sub {
+            font-family: var(--mono);
+            font-size: 0.76rem;
+            color: var(--text-mute);
+            margin-top: 6px;
+            line-height: 1.65;
+            word-break: break-word;
+        }
+
+        .badge {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--accent-2);
+            background: var(--accent-soft);
+            border: 1px solid var(--accent-line);
+            border-radius: 999px;
+            padding: 4px 11px;
+            white-space: nowrap;
+        }
+
+        .badge-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: none;
+        }
+
+        @media (max-width: 560px) {
+            .card-head {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .card-actions {
+                justify-content: flex-start;
+            }
+        }
+
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex: 1 1 auto;
+            min-width: 0;
+            justify-content: flex-end;
+        }
+
+        .card.error .card-title {
+            color: #ff9b9b;
+        }
+
+        /* ---------- 帧预览 ---------- */
+        .frames {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .frame {
+            background: rgba(8, 11, 16, 0.6);
+            border: 1px solid rgba(136, 207, 222, 0.1);
+            border-radius: 14px;
+            padding: 10px;
+            width: 118px;
+            flex: 0 0 auto;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+
+        .frame:hover {
+            border-color: var(--accent-line);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .frame-box {
+            width: 92px;
+            height: 92px;
+            margin: 0 auto 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            overflow: hidden;
+        }
+
+        .checker {
+            background-color: #1d2634;
+            background-image:
+                linear-gradient(45deg, #263243 25%, transparent 25%),
+                linear-gradient(-45deg, #263243 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #263243 75%),
+                linear-gradient(-45deg, transparent 75%, #263243 75%);
+            background-size: 12px 12px;
+            background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+        }
+
+        .frame-box img {
+            image-rendering: pixelated;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .frame-label {
+            font-family: var(--mono);
+            font-size: 0.79rem;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .frame-tag {
+            display: inline-block;
+            max-width: 100%;
+            font-size: 0.68rem;
+            color: var(--text-mute);
+            margin-top: 5px;
+            padding: 1px 8px;
+            border-radius: 999px;
+            background: rgba(136, 207, 222, 0.07);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .frame .btn {
+            margin-top: 9px;
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 0.76rem;
+            border-radius: 8px;
+        }
+
+        /* ---------- 说明 ---------- */
+        .note {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(8, 11, 16, 0.4);
+            padding: 0 16px;
+        }
+
+        .note summary {
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-2);
+            padding: 14px 0;
+            outline: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .note summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .note summary::before {
+            content: '+';
+            font-family: var(--mono);
+            font-size: 0.95rem;
+            color: var(--accent-2);
+            width: 12px;
+        }
+
+        .note[open] summary::before {
+            content: '−';
+        }
+
+        .note ul {
+            margin: 0 0 16px 18px;
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            line-height: 1.95;
+        }
+
+        .note code {
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            background: rgba(136, 207, 222, 0.1);
+            border-radius: 5px;
+            padding: 1px 6px;
+            color: var(--accent-2);
+        }
+
+        /* ---------- 提示条 ---------- */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 38px;
+            transform: translate(-50%, 20px);
+            background: rgba(19, 25, 35, 0.96);
+            border: 1px solid var(--accent-line);
+            color: var(--text);
+            font-size: 0.86rem;
+            padding: 13px 24px;
+            border-radius: 999px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 99;
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .toast.error {
+            border-color: rgba(255, 138, 138, 0.6);
+        }
+
+        /* ---------- 页脚 ---------- */
+        .footer {
+            margin-top: auto;
+            padding: 26px 0 14px;
+            text-align: center;
+            color: #7f8c99;
+            font-size: 12px;
+        }
+
+        .footer a {
+            color: #7f8c99;
+            text-decoration: none;
+            padding: 0 13px;
+            border-right: 1px solid rgba(255, 255, 255, 0.12);
+            transition: color 0.25s ease;
+        }
+
+        .footer a:last-child {
+            border-right: none;
+        }
+
+        .footer a:hover {
+            color: var(--accent-2);
+        }
+
+        /* ---------- 滚动条 ---------- */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #080b10;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #24313f;
+            border-radius: 999px;
+            border: 2px solid #080b10;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #33455a;
+        }
+
+        /* ---------- 响应式 ---------- */
+        @media (max-width: 1400px) {
+            .frame {
+                width: 112px;
+            }
+
+            .frame-box {
+                width: 88px;
+                height: 88px;
+            }
+
+            .frames {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 1080px) {
+            .workspace {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .rail {
+                position: static;
+            }
+
+            .chips {
+                grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 0 14px;
+            }
+
+            .page {
+                padding-top: 18px;
+            }
+
+            h1 {
+                font-size: 1.9rem;
+            }
+
+            .container {
+                padding: 15px;
+                border-radius: 20px;
+            }
+
+            .tab {
+                padding: 10px 18px;
+                font-size: 0.86rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .frame-box {
+                width: 80px;
+                height: 80px;
+            }
+
+            .frame {
+                width: 104px;
+            }
+
+            .footer a {
+                padding: 0 9px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow glow-a"></div>
+    <div class="glow glow-b"></div>
+
+    <div class="page">
+        <header class="topbar">
+            <a class="back-link" href="/">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+                回到主站
+            </a>
+            <span class="privacy"><span class="dot"></span>本地处理 · 图片不会上传</span>
+        </header>
+
+        <section class="hero">
+            <h1>ICO 图标转换工具</h1>
+            <p class="hero-sub">把图片做成多尺寸 ICO 图标，也能把 ICO 逐帧还原成 <span class="hl">PNG / JPG / WebP</span></p>
+            <ul class="hero-points">
+                <li>不上传，断网可用</li>
+                <li>16 – 256 多尺寸</li>
+                <li>BMP / PNG 帧可选</li>
+                <li>支持反向提取</li>
+            </ul>
+        </section>
+
+        <nav class="tabs">
+            <span class="tab-slider" aria-hidden="true"></span>
+            <button class="tab active" data-tab="toico" type="button">图片 → ICO</button>
+            <button class="tab" data-tab="fromico" type="button">ICO → 图片</button>
+        </nav>
+
+        <main class="container">
+            <!-- ============ 图片 → ICO ============ -->
+            <section class="panel" id="panel-toico">
+                <div class="workspace">
+                    <aside class="rail">
+                        <div class="step">
+                            <div class="step-head">
+                                <span class="step-num">1</span>
+                                <h2 class="step-title">选择图片</h2>
+                            </div>
+                            <div class="dropzone" id="dz-toico">
+                                <div class="dz-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="3"/>
+                                        <path d="M12 8v8M8 12h8"/>
+                                    </svg>
+                                </div>
+                                <div class="dz-title">拖拽图片到这里</div>
+                                <div class="dz-hint">PNG / JPG / WebP / GIF / BMP，可多选<br>也可以直接 Ctrl + V 粘贴</div>
+                                <div class="dz-action">选择文件</div>
+                                <input type="file" id="file-toico" accept="image/*" multiple hidden>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-head">
+                                <span class="step-num">2</span>
+                                <h2 class="step-title">图标尺寸</h2>
+                            </div>
+                            <div class="presets" id="size-presets">
+                                <button class="preset" data-preset="web" type="button">网站图标</button>
+                                <button class="preset" data-preset="app" type="button">Windows 全尺寸</button>
+                                <button class="preset" data-preset="all" type="button">全选</button>
+                            </div>
+                            <div class="chips" id="size-chips"></div>
+                            <p class="setting-hint">每个勾选的尺寸都会成为 ICO 里的一帧，小尺寸给任务栏和 favicon，256 给大图标视图。</p>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-head">
+                                <span class="step-num">3</span>
+                                <h2 class="step-title">转换细节</h2>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" for="fit-mode">缩放方式</label>
+                                <select class="select" id="fit-mode">
+                                    <option value="contain">适应：保持比例，空白处透明（推荐）</option>
+                                    <option value="cover">填充：保持比例，居中裁剪填满</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" for="encode-mode">编码方式</label>
+                                <select class="select" id="encode-mode">
+                                    <option value="auto">自动：256 用 PNG，其余 BMP（兼容性最好）</option>
+                                    <option value="png">全部 PNG：体积最小（需 Vista 及以上）</option>
+                                    <option value="bmp">全部 BMP：老程序也认，体积偏大</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" for="pad-color">空白处填充</label>
+                                <select class="select" id="pad-color">
+                                    <option value="transparent">透明（推荐）</option>
+                                    <option value="#ffffff">白色</option>
+                                    <option value="#000000">黑色</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </aside>
+
+                    <div class="main-col">
+                        <div class="col-head">
+                            <div class="col-head-text">
+                                <h2 class="col-title">转换结果</h2>
+                                <span class="col-hint">上传即生成，改动左侧设置会立即重算</span>
+                            </div>
+                            <div class="col-head-actions">
+                                <button class="btn ghost small" id="btn-download-all" type="button" hidden>下载全部</button>
+                                <button class="btn ghost small" id="btn-clear" type="button" hidden>清空</button>
+                            </div>
+                        </div>
+                        <div class="results" id="results-toico"></div>
+
+                        <details class="note">
+                            <summary>使用说明 / 常见问题</summary>
+                            <ul>
+                                <li>把导出的文件改名成 <code>favicon.ico</code>，放到网站根目录，浏览器和 Windows 就能识别。</li>
+                                <li>多尺寸图标里，Windows 会按显示场景自动挑最合适的一帧，所以生成的每一帧都是独立的、按目标尺寸重新采样的画面，而不是整体缩小。</li>
+                                <li>方图效果最好；非方图按“缩放方式”处理，适应会留透明边，填充会居中裁剪。</li>
+                                <li>少数老软件不认 PNG 帧，把编码方式改成“全部 BMP”再生成一次即可。</li>
+                                <li>所有运算都在浏览器里完成，关掉网络也能用；页面不会上传、也不会保存你的图片。</li>
+                            </ul>
+                        </details>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ ICO → 图片 ============ -->
+            <section class="panel hidden" id="panel-fromico">
+                <div class="workspace">
+                    <aside class="rail">
+                        <div class="step">
+                            <div class="step-head">
+                                <span class="step-num">1</span>
+                                <h2 class="step-title">选择 ICO 文件</h2>
+                            </div>
+                            <div class="dropzone" id="dz-fromico">
+                                <div class="dz-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 8l-9-5-9 5 9 5 9-5z"/>
+                                        <path d="M3 8v8l9 5 9-5V8"/>
+                                        <path d="M12 13v8"/>
+                                    </svg>
+                                </div>
+                                <div class="dz-title">拖拽 .ico 文件到这里</div>
+                                <div class="dz-hint">多尺寸 ICO 会逐帧展开<br>支持 32bpp / 24bpp / 调色板格式</div>
+                                <div class="dz-action">选择文件</div>
+                                <input type="file" id="file-fromico" accept=".ico,image/x-icon,image/vnd.microsoft.icon" multiple hidden>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-head">
+                                <span class="step-num">2</span>
+                                <h2 class="step-title">输出设置</h2>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" for="out-format">输出图片格式</label>
+                                <select class="select" id="out-format">
+                                    <option value="image/png">PNG（支持透明，推荐）</option>
+                                    <option value="image/webp">WebP（支持透明，体积小）</option>
+                                    <option value="image/jpeg">JPEG（不支持透明，自动填白）</option>
+                                </select>
+                                <p class="setting-hint">切换格式后，所有帧的预览与下载都会按新格式重新生成，尺寸保持原样。</p>
+                            </div>
+                        </div>
+
+                    </aside>
+
+                    <div class="main-col">
+                        <div class="col-head">
+                            <div class="col-head-text">
+                                <h2 class="col-title">提取结果</h2>
+                                <span class="col-hint">每一帧可单独下载或重新打包</span>
+                            </div>
+                            <div class="col-head-actions">
+                                <button class="btn ghost small" id="btn-download-frames" type="button" hidden>下载全部帧</button>
+                                <button class="btn ghost small" id="btn-clear-fromico" type="button" hidden>清空</button>
+                            </div>
+                        </div>
+                        <div class="results" id="results-fromico"></div>
+
+                        <details class="note">
+                            <summary>使用说明</summary>
+                            <ul>
+                                <li>ICO 本质上是“一个文件装多张图”，这里会把每一帧单独列出来，附上原始尺寸和编码信息。</li>
+                                <li><code>打包为 ICO（原尺寸）</code>：不改尺寸，把提取出的帧重新装回一个 ICO。想把 PNG 帧的图标转成老程序也能认的 BMP 帧，用这个。</li>
+                                <li><code>用最大帧做图标</code>：把最大的一帧送回“图片 → ICO”页，重新勾选尺寸生成新图标（小图标放大会糊，所以只取最大的那帧）。</li>
+                                <li>提取保持原始像素，PNG / WebP 无损，不做二次压缩。</li>
+                            </ul>
+                        </details>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <a href="https://contact.dayun.cool" target="_blank">问题反馈</a><a href="https://space.bilibili.com/192702710" target="_blank">bilibili</a><span style="padding: 0 13px;">© 2025-2026 大沄</span>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+<script>
+(function () {
+    'use strict';
+
+    /* =====================================================================
+     *  通用工具
+     * ===================================================================== */
+
+    var SIZES = [16, 24, 32, 48, 64, 128, 256];
+    var DEFAULT_SIZES = [16, 32, 48, 256];
+    var PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+    var selectedSizes = DEFAULT_SIZES.slice();
+
+    function $(id) { return document.getElementById(id); }
+
+    function el(tag, className, text) {
+        var node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+    }
+
+    var toastTimer = null;
+    function toast(message, isError) {
+        var box = $('toast');
+        box.textContent = message;
+        box.className = 'toast show' + (isError ? ' error' : '');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { box.className = 'toast'; }, 2800);
+    }
+
+    function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB';
+        return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+    }
+
+    function baseName(name) {
+        return String(name || 'image').replace(/\.[^.]+$/, '') || 'image';
+    }
+
+    function createCanvas(w, h) {
+        var c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        return c;
+    }
+
+    function canvasToBlob(canvas, type, quality) {
+        return new Promise(function (resolve, reject) {
+            canvas.toBlob(function (blob) {
+                if (blob) resolve(blob);
+                else reject(new Error('导出图片失败'));
+            }, type || 'image/png', quality);
+        });
+    }
+
+    function blobToBytes(blob) {
+        return blob.arrayBuffer().then(function (buf) { return new Uint8Array(buf); });
+    }
+
+    function loadImageFromBlob(blob) {
+        return new Promise(function (resolve, reject) {
+            var url = URL.createObjectURL(blob);
+            var img = new Image();
+            img.onload = function () { resolve({ img: img, url: url }); };
+            img.onerror = function () {
+                URL.revokeObjectURL(url);
+                reject(new Error('无法解码这个文件，可能不是图片'));
+            };
+            img.src = url;
+        });
+    }
+
+    function downloadBlob(blob, filename) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 20000);
+    }
+
+    function downloadSequence(items) {
+        // items: [{blob, filename}] —— 逐个触发，避免浏览器拦截连续下载
+        items.forEach(function (item, index) {
+            setTimeout(function () { downloadBlob(item.blob, item.filename); }, index * 350);
+        });
+    }
+
+    function isPng(bytes) {
+        if (bytes.length < 8) return false;
+        for (var i = 0; i < 8; i++) if (bytes[i] !== PNG_SIG[i]) return false;
+        return true;
+    }
+
+    /* =====================================================================
+     *  缩放：把任意尺寸的图渲染成目标边长的画布
+     * ===================================================================== */
+
+    function stepDownscale(source, srcW, srcH, minW, minH) {
+        // 逐级减半，避免浏览器一次性大幅缩小造成的锯齿和噪点
+        var current = source;
+        var curW = srcW;
+        var curH = srcH;
+        var guard = 0;
+        while (curW / 2 >= minW && curH / 2 >= minH && curW > 2 && curH > 2 && guard++ < 12) {
+            var next = createCanvas(Math.max(1, Math.round(curW / 2)), Math.max(1, Math.round(curH / 2)));
+            var nctx = next.getContext('2d');
+            nctx.imageSmoothingEnabled = true;
+            nctx.imageSmoothingQuality = 'high';
+            nctx.drawImage(current, 0, 0, curW, curH, 0, 0, next.width, next.height);
+            current = next;
+            curW = next.width;
+            curH = next.height;
+        }
+        return { source: current, width: curW, height: curH };
+    }
+
+    function renderFrame(source, size, fitMode, padColor) {
+        var srcW = source.naturalWidth || source.width;
+        var srcH = source.naturalHeight || source.height;
+        var canvas = createCanvas(size, size);
+        var ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        if (padColor && padColor !== 'transparent') {
+            ctx.fillStyle = padColor;
+            ctx.fillRect(0, 0, size, size);
+        }
+        if (!srcW || !srcH) return canvas;
+
+        var scaled = stepDownscale(source, srcW, srcH, size, size);
+
+        if (fitMode === 'cover') {
+            var coverScale = Math.max(size / scaled.width, size / scaled.height);
+            var cropW = Math.min(scaled.width, size / coverScale);
+            var cropH = Math.min(scaled.height, size / coverScale);
+            var sx = (scaled.width - cropW) / 2;
+            var sy = (scaled.height - cropH) / 2;
+            ctx.drawImage(scaled.source, sx, sy, cropW, cropH, 0, 0, size, size);
+        } else {
+            var scale = Math.min(size / scaled.width, size / scaled.height, 1);
+            var drawW = Math.max(1, Math.round(scaled.width * scale));
+            var drawH = Math.max(1, Math.round(scaled.height * scale));
+            ctx.drawImage(
+                scaled.source,
+                Math.round((size - drawW) / 2),
+                Math.round((size - drawH) / 2),
+                drawW,
+                drawH
+            );
+        }
+        return canvas;
+    }
+
+    /* =====================================================================
+     *  ICO 编码
+     * ===================================================================== */
+
+    function encodeDIB(imageData) {
+        // BMP（BITMAPINFOHEADER + 32bpp BGRA + 1bpp AND 掩码），不带 BITMAPFILEHEADER
+        var w = imageData.width;
+        var h = imageData.height;
+        var pixels = imageData.data;
+        var xorRow = w * 4;
+        var andRow = ((w + 31) >> 5) * 4;
+        var xorSize = xorRow * h;
+        var andSize = andRow * h;
+        var total = 40 + xorSize + andSize;
+        var buffer = new ArrayBuffer(total);
+        var view = new DataView(buffer);
+        var bytes = new Uint8Array(buffer);
+
+        view.setUint32(0, 40, true);            // biSize
+        view.setInt32(4, w, true);              // biWidth
+        view.setInt32(8, h * 2, true);          // biHeight（含掩码，所以是 2 倍）
+        view.setUint16(12, 1, true);            // biPlanes
+        view.setUint16(14, 32, true);           // biBitCount
+        view.setUint32(16, 0, true);            // biCompression = BI_RGB
+        view.setUint32(20, xorSize + andSize, true); // biSizeImage
+        view.setInt32(24, 0, true);             // biXPelsPerMeter
+        view.setInt32(28, 0, true);             // biYPelsPerMeter
+        view.setUint32(32, 0, true);            // biClrUsed
+        view.setUint32(36, 0, true);            // biClrImportant
+
+        var xorOffset = 40;
+        var andOffset = 40 + xorSize;
+        for (var y = 0; y < h; y++) {
+            var srcRow = (h - 1 - y) * w * 4;   // BMP 自下而上
+            var rowStart = xorOffset + y * xorRow;
+            var maskStart = andOffset + y * andRow;
+            for (var x = 0; x < w; x++) {
+                var i = srcRow + x * 4;
+                var alpha = pixels[i + 3];
+                var o = rowStart + x * 4;
+                bytes[o] = pixels[i + 2];
+                bytes[o + 1] = pixels[i + 1];
+                bytes[o + 2] = pixels[i];
+                bytes[o + 3] = alpha;
+                if (alpha < 128) {
+                    bytes[maskStart + (x >> 3)] |= (0x80 >> (x & 7));
+                }
+            }
+        }
+        return bytes;
+    }
+
+    function frameDimension(frame, axis) {
+        return frame[axis] || frame.size || 0;
+    }
+
+    function toDirectoryByte(value) {
+        return value >= 256 ? 0 : value; // 256 记作 0
+    }
+
+    function assembleICO(frames) {
+        // frames: [{ width, height, data }]（也接受旧的 size 写法），按面积升序排列
+        var ordered = frames.slice().sort(function (a, b) {
+            return frameDimension(a, 'width') * frameDimension(a, 'height')
+                - frameDimension(b, 'width') * frameDimension(b, 'height');
+        });
+        var count = ordered.length;
+        var dirSize = 6 + 16 * count;
+        var total = dirSize;
+        ordered.forEach(function (f) { total += f.data.length; });
+
+        var buffer = new ArrayBuffer(total);
+        var view = new DataView(buffer);
+        var bytes = new Uint8Array(buffer);
+
+        view.setUint16(0, 0, true);      // reserved
+        view.setUint16(2, 1, true);      // type = 1（图标）
+        view.setUint16(4, count, true);  // 图像数量
+
+        var offset = dirSize;
+        ordered.forEach(function (frame, index) {
+            var entry = 6 + index * 16;
+            view.setUint8(entry, toDirectoryByte(frameDimension(frame, 'width')));   // bWidth
+            view.setUint8(entry + 1, toDirectoryByte(frameDimension(frame, 'height'))); // bHeight
+            view.setUint8(entry + 2, 0);              // bColorCount
+            view.setUint8(entry + 3, 0);              // bReserved
+            view.setUint16(entry + 4, 1, true);       // wPlanes
+            view.setUint16(entry + 6, 32, true);      // wBitCount
+            view.setUint32(entry + 8, frame.data.length, true); // dwBytesInRes
+            view.setUint32(entry + 12, offset, true); // dwImageOffset
+            bytes.set(frame.data, offset);
+            offset += frame.data.length;
+        });
+
+        return new Blob([buffer], { type: 'image/x-icon' });
+    }
+
+    function usePng(size, mode) {
+        if (mode === 'png') return true;
+        if (mode === 'bmp') return false;
+        return size > 128; // auto：256 用 PNG，其余 BMP
+    }
+
+    /* =====================================================================
+     *  ICO 解码
+     * ===================================================================== */
+
+    function parseICO(bytes) {
+        var view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        if (bytes.length < 6) throw new Error('文件太小，不是有效的 ICO');
+
+        var reserved = view.getUint16(0, true);
+        var type = view.getUint16(2, true);
+        var count = view.getUint16(4, true);
+        if (reserved !== 0 || (type !== 1 && type !== 2)) throw new Error('不是有效的 ICO 文件');
+        if (count === 0) throw new Error('这个 ICO 里没有任何图像');
+        if (6 + 16 * count > bytes.length) throw new Error('ICO 目录不完整，文件可能已损坏');
+
+        var frames = [];
+        for (var i = 0; i < count; i++) {
+            var base = 6 + i * 16;
+            var w = view.getUint8(base) || 256;
+            var h = view.getUint8(base + 1) || 256;
+            var bitCount = view.getUint16(base + 6, true);
+            var length = view.getUint32(base + 8, true);
+            var offset = view.getUint32(base + 12, true);
+
+            if (offset + length > bytes.length) {
+                throw new Error('第 ' + (i + 1) + ' 帧数据超出文件范围，文件可能已损坏');
+            }
+            var data = bytes.subarray(offset, offset + length);
+            frames.push({
+                width: w,
+                height: h,
+                bitCount: bitCount,
+                kind: isPng(data) ? 'png' : 'dib',
+                data: data
+            });
+        }
+        return { type: type, frames: frames };
+    }
+
+    function decodeDIB(data, expectedWidth, expectedHeight) {
+        var view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+        var headerSize = view.getUint32(0, true);
+        var width = view.getInt32(4, true);
+        var rawHeight = view.getInt32(8, true);
+        var planes = view.getUint16(12, true);
+        var bitCount = view.getUint16(14, true);
+        var compression = view.getUint32(16, true);
+        var clrUsed = view.getUint32(32, true);
+
+        if (headerSize < 40) throw new Error('BMP 头不完整，无法解析');
+        if (compression !== 0 && compression !== 3) {
+            throw new Error('暂不支持该 BMP 压缩方式（' + compression + '）');
+        }
+        if ([1, 4, 8, 24, 32].indexOf(bitCount) === -1) {
+            throw new Error('暂不支持 ' + bitCount + ' 位色深的图标');
+        }
+        if (!width || width !== width) width = expectedWidth || width;
+
+        var absHeight = Math.abs(rawHeight);
+        var height = absHeight === expectedHeight * 2 ? expectedHeight : absHeight;
+        var hasMaskRecorded = absHeight === expectedHeight * 2;
+        if (!height) throw new Error('BMP 高度无效');
+
+        var paletteCount = bitCount <= 8 ? (clrUsed || (1 << bitCount)) : 0;
+        var paletteOffset = headerSize;
+        var xorOffset = paletteOffset + paletteCount * 4;
+        var xorRow = ((width * bitCount + 31) >> 5) * 4;
+        var andRow = ((width + 31) >> 5) * 4;
+        var xorSize = xorRow * height;
+        var andSize = andRow * height;
+
+        if (xorOffset + xorSize > data.length) throw new Error('BMP 像素数据不完整');
+        var hasMask = hasMaskRecorded || (xorOffset + xorSize + andSize <= data.length);
+        var andOffset = xorOffset + xorSize;
+
+        var palette = null;
+        if (paletteCount) {
+            palette = new Uint8Array(paletteCount * 3);
+            for (var p = 0; p < paletteCount; p++) {
+                var po = paletteOffset + p * 4;
+                if (po + 2 >= data.length) break;
+                palette[p * 3] = data[po + 2];
+                palette[p * 3 + 1] = data[po + 1];
+                palette[p * 3 + 2] = data[po];
+            }
+        }
+
+        var imageData = new ImageData(width, height);
+        var out = imageData.data;
+        var bottomUp = rawHeight > 0;
+        var allAlphaZero = bitCount === 32;
+
+        for (var y = 0; y < height; y++) {
+            var srcRow = bottomUp ? height - 1 - y : y;
+            var rowStart = xorOffset + srcRow * xorRow;
+            var maskStart = andOffset + srcRow * andRow;
+            for (var x = 0; x < width; x++) {
+                var o = (y * width + x) * 4;
+                var r = 0, g = 0, b = 0, a = 255;
+
+                if (bitCount === 32) {
+                    var p32 = rowStart + x * 4;
+                    b = data[p32];
+                    g = data[p32 + 1];
+                    r = data[p32 + 2];
+                    a = data[p32 + 3];
+                } else if (bitCount === 24) {
+                    var p24 = rowStart + x * 3;
+                    b = data[p24];
+                    g = data[p24 + 1];
+                    r = data[p24 + 2];
+                } else {
+                    var index;
+                    if (bitCount === 8) {
+                        index = data[rowStart + x];
+                    } else if (bitCount === 4) {
+                        var byte4 = data[rowStart + (x >> 1)];
+                        index = (x & 1) ? (byte4 & 0x0f) : (byte4 >> 4);
+                    } else {
+                        var byte1 = data[rowStart + (x >> 3)];
+                        index = (byte1 >> (7 - (x & 7))) & 1;
+                    }
+                    if (palette) {
+                        r = palette[index * 3];
+                        g = palette[index * 3 + 1];
+                        b = palette[index * 3 + 2];
+                    } else {
+                        r = g = b = index ? 255 : 0;
+                    }
+                }
+
+                if (bitCount !== 32) {
+                    if (hasMask) {
+                        var masked = (data[maskStart + (x >> 3)] >> (7 - (x & 7))) & 1;
+                        if (masked) a = 0;
+                    }
+                } else if (a !== 0) {
+                    allAlphaZero = false;
+                }
+
+                out[o] = r;
+                out[o + 1] = g;
+                out[o + 2] = b;
+                out[o + 3] = a;
+            }
+        }
+
+        // 32 位图标的 alpha 全为 0，说明作者没写 alpha，只能回退到 AND 掩码
+        if (bitCount === 32 && allAlphaZero && hasMask) {
+            for (var my = 0; my < height; my++) {
+                var mSrcRow = bottomUp ? height - 1 - my : my;
+                var mStart = andOffset + mSrcRow * andRow;
+                for (var mx = 0; mx < width; mx++) {
+                    var mo = (my * width + mx) * 4;
+                    var bit = (data[mStart + (mx >> 3)] >> (7 - (mx & 7))) & 1;
+                    out[mo + 3] = bit ? 0 : 255;
+                }
+            }
+        }
+
+        if (!planes) planes = 1;
+        return { imageData: imageData, bitCount: bitCount, planes: planes };
+    }
+
+    /* =====================================================================
+     *  标签页切换
+     * ===================================================================== */
+
+    var activeTab = 'toico';
+
+    var tabsBox = document.querySelector('.tabs');
+    var tabSlider = document.querySelector('.tab-slider');
+
+    function moveTabSlider(tab) {
+        if (!tabSlider || !tab) return;
+        tabSlider.style.width = tab.offsetWidth + 'px';
+        tabSlider.style.transform = 'translateX(' + tab.offsetLeft + 'px)';
+    }
+
+    function placeTabSlider(animate) {
+        var current = document.querySelector('.tab.active');
+        if (!current || !tabsBox) return;
+        if (!animate) tabsBox.classList.add('no-anim');
+        moveTabSlider(current);
+        if (!animate) {
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () { tabsBox.classList.remove('no-anim'); });
+            });
+        }
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (tab) {
+        tab.addEventListener('click', function () {
+            activeTab = tab.getAttribute('data-tab');
+            Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) {
+                t.classList.toggle('active', t === tab);
+            });
+            $('panel-toico').classList.toggle('hidden', activeTab !== 'toico');
+            $('panel-fromico').classList.toggle('hidden', activeTab !== 'fromico');
+            moveTabSlider(tab);
+        });
+    });
+
+    window.addEventListener('resize', function () { placeTabSlider(false); });
+    window.addEventListener('load', function () { placeTabSlider(false); });
+
+    /* =====================================================================
+     *  图片 → ICO
+     * ===================================================================== */
+
+    var sources = [];      // { id, name, outName, img, url }
+    var icoResults = [];   // { source, frames, blob }
+    var regenTimer = null;
+
+    function renderSizeChips() {
+        var box = $('size-chips');
+        box.innerHTML = '';
+        SIZES.forEach(function (size) {
+            var chip = el('button', 'chip' + (selectedSizes.indexOf(size) !== -1 ? ' active' : ''), size + '×' + size);
+            chip.type = 'button';
+            chip.setAttribute('data-size', size);
+            chip.addEventListener('click', function () {
+                var index = selectedSizes.indexOf(size);
+                if (index === -1) selectedSizes.push(size);
+                else selectedSizes.splice(index, 1);
+                selectedSizes.sort(function (a, b) { return a - b; });
+                renderSizeChips();
+                scheduleGenerate();
+            });
+            box.appendChild(chip);
+        });
+    }
+
+    function applySizes(list) {
+        selectedSizes = list.slice().sort(function (a, b) { return a - b; });
+        renderSizeChips();
+        scheduleGenerate();
+    }
+
+    function bindPresets() {
+        var presets = {
+            web: [16, 32, 48],                       // 浏览器 favicon 常用组合
+            app: [16, 32, 48, 64, 128, 256],         // Windows 图标常用尺寸（不含 24）
+            all: SIZES.slice()                       // 含 24 在内的全部尺寸
+        };
+        Array.prototype.forEach.call(document.querySelectorAll('#size-presets .preset'), function (button) {
+            button.addEventListener('click', function () {
+                var list = presets[button.getAttribute('data-preset')];
+                if (!list) return;
+                applySizes(list);
+            });
+        });
+    }
+
+    function updateICOButtons() {
+        $('btn-download-all').hidden = icoResults.length < 2;
+        $('btn-clear').hidden = sources.length === 0;
+    }
+
+    function currentOptions() {
+        return {
+            sizes: selectedSizes.slice().sort(function (a, b) { return a - b; }),
+            fit: $('fit-mode').value,
+            encode: $('encode-mode').value,
+            pad: $('pad-color').value
+        };
+    }
+
+    function scheduleGenerate() {
+        clearTimeout(regenTimer);
+        regenTimer = setTimeout(function () { generateICO(); }, 60);
+    }
+
+    function addSources(files) {
+        var tasks = Array.prototype.map.call(files, function (file) {
+            return loadImageFromBlob(file).then(function (loaded) {
+                var img = loaded.img;
+                if (!img.naturalWidth || !img.naturalHeight) {
+                    URL.revokeObjectURL(loaded.url);
+                    throw new Error('“' + (file.name || '图片') + '”尺寸无效');
+                }
+                sources.push({
+                    id: 'src-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                    name: file.name || 'image',
+                    outName: baseName(file.name) + '.ico',
+                    img: img,
+                    url: loaded.url
+                });
+            }).catch(function (error) {
+                toast(error.message || '有一张图片无法读取', true);
+            });
+        });
+        Promise.all(tasks).then(function () {
+            updateICOButtons();
+            if (sources.length) generateICO();
+        });
+    }
+
+    function generateICO() {
+        if (!sources.length || !selectedSizes.length) {
+            icoResults = [];
+            renderICOResults();
+            updateICOButtons();
+            return;
+        }
+        var options = currentOptions();
+
+        var jobs = sources.map(function (source) {
+            var frames = [];
+            var chain = Promise.resolve();
+            options.sizes.forEach(function (size) {
+                chain = chain.then(function () {
+                    var canvas = renderFrame(source.img, size, options.fit, options.pad);
+                    var isPng = usePng(size, options.encode);
+                    if (isPng) {
+                        return canvasToBlob(canvas, 'image/png').then(function (blob) {
+                            return blobToBytes(blob).then(function (bytes) {
+                                frames.push({
+                                    size: size,
+                                    width: size,
+                                    height: size,
+                                    kind: 'png',
+                                    data: bytes,
+                                    preview: canvas.toDataURL('image/png')
+                                });
+                            });
+                        });
+                    }
+                    var ctx = canvas.getContext('2d');
+                    var imageData = ctx.getImageData(0, 0, size, size);
+                    frames.push({
+                        size: size,
+                        width: size,
+                        height: size,
+                        kind: 'bmp',
+                        data: encodeDIB(imageData),
+                        preview: canvas.toDataURL('image/png')
+                    });
+                    return null;
+                });
+            });
+            return chain.then(function () {
+                return {
+                    source: source,
+                    frames: frames,
+                    blob: assembleICO(frames)
+                };
+            });
+        });
+
+        Promise.all(jobs).then(function (results) {
+            icoResults = results;
+            renderICOResults();
+            updateICOButtons();
+        }).catch(function (error) {
+            updateICOButtons();
+            toast(error.message || '生成失败', true);
+        });
+    }
+
+    function renderICOResults() {
+        var box = $('results-toico');
+        box.innerHTML = '';
+        icoResults.forEach(function (result) {
+            var card = el('div', 'card');
+
+            var head = el('div', 'card-head');
+            var info = el('div');
+            var titleRow = el('div', 'card-title-row');
+            titleRow.appendChild(el('span', 'card-title', result.source.outName));
+            titleRow.appendChild(el('span', 'badge', formatBytes(result.blob.size)));
+            info.appendChild(titleRow);
+            var composition = result.frames.map(function (f) {
+                return f.size + (f.kind === 'png' ? ' PNG' : ' BMP');
+            }).join(' · ');
+            info.appendChild(el('div', 'card-sub',
+                result.frames.length + ' 个尺寸 · ' + composition));
+            head.appendChild(info);
+
+            var actions = el('div', 'card-actions');
+            var downloadBtn = el('button', 'btn primary small', '下载 ICO');
+            downloadBtn.type = 'button';
+            downloadBtn.addEventListener('click', function () {
+                downloadBlob(result.blob, result.source.outName);
+                toast('已开始下载 ' + result.source.outName);
+            });
+            var removeBtn = el('button', 'btn ghost small', '移除');
+            removeBtn.type = 'button';
+            removeBtn.addEventListener('click', function () {
+                URL.revokeObjectURL(result.source.url);
+                sources = sources.filter(function (s) { return s !== result.source; });
+                icoResults = icoResults.filter(function (r) { return r !== result; });
+                renderICOResults();
+                updateICOButtons();
+            });
+            actions.appendChild(downloadBtn);
+            actions.appendChild(removeBtn);
+            head.appendChild(actions);
+            card.appendChild(head);
+
+            var frames = el('div', 'frames');
+            result.frames.slice().sort(function (a, b) { return a.size - b.size; }).forEach(function (frame) {
+                var cell = el('div', 'frame');
+                var boxEl = el('div', 'frame-box checker');
+                var img = new Image();
+                img.src = frame.preview;
+                img.alt = frame.size + '×' + frame.size;
+                var display = Math.min(frame.size * 2, 88);
+                img.style.width = display + 'px';
+                img.style.height = display + 'px';
+                boxEl.appendChild(img);
+                cell.appendChild(boxEl);
+                cell.appendChild(el('div', 'frame-label', frame.size + '×' + frame.size));
+                cell.appendChild(el('div', 'frame-tag', frame.kind === 'png' ? 'PNG' : 'BMP 32位'));
+                var single = el('button', 'btn ghost', '单独下载');
+                single.type = 'button';
+                single.addEventListener('click', function () {
+                    var name = baseName(result.source.outName) + '_' + frame.size + '.ico';
+                    downloadBlob(assembleICO([frame]), name);
+                });
+                cell.appendChild(single);
+                frames.appendChild(cell);
+            });
+            card.appendChild(frames);
+            box.appendChild(card);
+        });
+    }
+
+    function clearToIco() {
+        sources.forEach(function (s) { URL.revokeObjectURL(s.url); });
+        sources = [];
+        icoResults = [];
+        $('file-toico').value = '';
+        renderICOResults();
+        updateICOButtons();
+    }
+
+    /* =====================================================================
+     *  ICO → 图片
+     * ===================================================================== */
+
+    var icoFiles = [];     // { id, name, baseName, frames:[{width,height,canvas,bitCount,kind}] }
+
+    function renderFromIcoResults() {
+        var box = $('results-fromico');
+        box.innerHTML = '';
+
+        icoFiles.forEach(function (entry) {
+            var card = el('div', 'card');
+
+            var head = el('div', 'card-head');
+            var info = el('div');
+            var titleRow = el('div', 'card-title-row');
+            titleRow.appendChild(el('span', 'card-title', entry.name));
+            if (!entry.error) {
+                titleRow.appendChild(el('span', 'badge', entry.frames.length + ' 帧'));
+            }
+            info.appendChild(titleRow);
+            if (entry.error) {
+                card.classList.add('error');
+                info.appendChild(el('div', 'card-sub', entry.error));
+            } else {
+                var sizeList = entry.frames.map(function (f) {
+                    return f.width + '×' + f.height;
+                }).join(' · ');
+                info.appendChild(el('div', 'card-sub', sizeList));
+            }
+            head.appendChild(info);
+
+            var actions = el('div', 'card-actions');
+            if (!entry.error) {
+                var downloadAll = el('button', 'btn primary small', '下载全部帧');
+                downloadAll.type = 'button';
+                downloadAll.addEventListener('click', function () {
+                    frameBlobs(entry).then(function (list) {
+                        downloadSequence(list);
+                        toast('已开始下载 ' + list.length + ' 张图片');
+                    });
+                });
+                var repack = el('button', 'btn small', '打包为 ICO（原尺寸）');
+                repack.type = 'button';
+                repack.addEventListener('click', function () {
+                    packFrames(entry).then(function (blob) {
+                        downloadBlob(blob, entry.baseName + '_new.ico');
+                        toast('已按原尺寸打包 ' + entry.frames.length + ' 帧为 ICO');
+                    });
+                });
+                var redo = el('button', 'btn small', '用最大帧做图标');
+                redo.type = 'button';
+                redo.addEventListener('click', function () {
+                    redoFromFrames(entry);
+                });
+                actions.appendChild(downloadAll);
+                actions.appendChild(repack);
+                actions.appendChild(redo);
+            }
+            var remove = el('button', 'btn ghost small', '移除');
+            remove.type = 'button';
+            remove.addEventListener('click', function () {
+                icoFiles = icoFiles.filter(function (f) { return f !== entry; });
+                renderFromIcoResults();
+            });
+            actions.appendChild(remove);
+            head.appendChild(actions);
+            card.appendChild(head);
+
+            if (!entry.error) {
+                var framesBox = el('div', 'frames');
+                entry.frames.forEach(function (frame) {
+                    var cell = el('div', 'frame');
+                    var frameBox = el('div', 'frame-box checker');
+                    var img = new Image();
+                    var display = Math.min(Math.max(frame.width, frame.height) * 2, 88);
+                    img.style.width = display + 'px';
+                    img.style.height = display + 'px';
+                    var url = frame.canvas.toDataURL('image/png');
+                    img.src = url;
+                    frameBox.appendChild(img);
+                    cell.appendChild(frameBox);
+                    cell.appendChild(el('div', 'frame-label', frame.width + '×' + frame.height));
+                    cell.appendChild(el('div', 'frame-tag',
+                        (frame.kind === 'png' ? 'PNG' : 'BMP ' + frame.bitCount + '位')));
+                    var single = el('button', 'btn ghost', '下载');
+                    single.type = 'button';
+                    single.addEventListener('click', function () {
+                        frameBlobs(entry).then(function (list) {
+                            var match = list.filter(function (item) { return item.frame === frame; })[0];
+                            if (match) downloadBlob(match.blob, match.filename);
+                        });
+                    });
+                    cell.appendChild(single);
+                    framesBox.appendChild(cell);
+                });
+                card.appendChild(framesBox);
+            }
+
+            box.appendChild(card);
+        });
+
+        $('btn-download-frames').hidden = !icoFiles.some(function (entry) { return !entry.error; });
+        $('btn-clear-fromico').hidden = icoFiles.length === 0;
+    }
+
+    function currentOutFormat() {
+        var format = $('out-format').value;
+        return {
+            type: format,
+            ext: format === 'image/jpeg' ? 'jpg' : (format === 'image/webp' ? 'webp' : 'png'),
+            quality: format === 'image/jpeg' ? 0.92 : undefined
+        };
+    }
+
+    function outputCanvas(frame, format) {
+        if (format.type !== 'image/jpeg') return frame.canvas;
+        // JPEG 没有透明通道，先垫白底再导出
+        var canvas = createCanvas(frame.width, frame.height);
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, frame.width, frame.height);
+        ctx.drawImage(frame.canvas, 0, 0);
+        return canvas;
+    }
+
+    function frameBlobs(entry) {
+        var format = currentOutFormat();
+        return Promise.all(entry.frames.map(function (frame, index) {
+            var filename = entry.baseName + '_' + frame.width + 'x' + frame.height + '.' + format.ext;
+            return canvasToBlob(outputCanvas(frame, format), format.type, format.quality).then(function (blob) {
+                var taken = entry.frames.slice(0, index).some(function (other) {
+                    return other.width === frame.width && other.height === frame.height;
+                });
+                if (taken) {
+                    filename = entry.baseName + '_' + frame.width + 'x' + frame.height + '_' + (index + 1) + '.' + format.ext;
+                }
+                return { frame: frame, filename: filename, blob: blob };
+            });
+        }));
+    }
+
+    function dedupeFilenames(items) {
+        var seen = {};
+        items.forEach(function (item, index) {
+            if (!seen[item.filename]) {
+                seen[item.filename] = 1;
+                return;
+            }
+            seen[item.filename] += 1;
+            var dot = item.filename.lastIndexOf('.');
+            var stem = item.filename.slice(0, dot);
+            var ext = item.filename.slice(dot);
+            item.filename = stem + '_' + (index + 1) + ext;
+        });
+    }
+
+    function packFrames(entry) {
+        // 按原尺寸把提取出来的帧重新打包成 ICO（可用来把 PNG 帧的图标转成全 BMP 帧）
+        // 目标编码和原帧一致时复用原始字节，避免经过 canvas 造成半透明像素取整
+        return Promise.all(entry.frames.map(function (frame) {
+            var size = Math.max(frame.width, frame.height);
+            var wantPng = usePng(size, 'auto');
+            var raw = frame.data;
+            var sameEncoding = (wantPng && frame.kind === 'png') || (!wantPng && frame.kind === 'dib');
+            if (raw && sameEncoding) {
+                return { width: frame.width, height: frame.height, data: raw };
+            }
+            if (wantPng) {
+                return canvasToBlob(frame.canvas, 'image/png').then(function (blob) {
+                    return blobToBytes(blob).then(function (bytes) {
+                        return { width: frame.width, height: frame.height, data: bytes };
+                    });
+                });
+            }
+            var imageData = frame.canvas.getContext('2d').getImageData(0, 0, frame.width, frame.height);
+            return { width: frame.width, height: frame.height, data: encodeDIB(imageData) };
+        })).then(function (built) {
+            return assembleICO(built);
+        });
+    }
+
+    function handleIcoFiles(files) {
+        Array.prototype.forEach.call(files, function (file) {
+            file.arrayBuffer().then(function (buffer) {
+                var name = file.name || 'icon.ico';
+                var entry = { id: 'ico-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), name: name, baseName: baseName(name), frames: [] };
+                try {
+                    var bytes = new Uint8Array(buffer);
+                    var parsed = parseICO(bytes);
+                    var chain = Promise.resolve();
+                    parsed.frames.forEach(function (frame, index) {
+                        chain = chain.then(function () {
+                            return buildFrameCanvas(frame).then(function (built) {
+                                entry.frames.push({
+                                    width: built.canvas.width,
+                                    height: built.canvas.height,
+                                    canvas: built.canvas,
+                                    bitCount: frame.bitCount,
+                                    kind: frame.kind,
+                                    data: frame.data,
+                                    index: index
+                                });
+                            });
+                        });
+                    });
+                    return chain.then(function () {
+                        icoFiles.push(entry);
+                        renderFromIcoResults();
+                    });
+                } catch (error) {
+                    entry.error = error.message || '解析失败';
+                    icoFiles.push(entry);
+                    renderFromIcoResults();
+                    return null;
+                }
+            }).catch(function (error) {
+                toast(error.message || '读取文件失败', true);
+            });
+        });
+    }
+
+    function buildFrameCanvas(frame) {
+        if (frame.kind === 'png') {
+            return loadImageFromBlob(new Blob([frame.data], { type: 'image/png' })).then(function (loaded) {
+                var canvas = createCanvas(loaded.img.naturalWidth, loaded.img.naturalHeight);
+                canvas.getContext('2d').drawImage(loaded.img, 0, 0);
+                URL.revokeObjectURL(loaded.url);
+                return { canvas: canvas };
+            });
+        }
+        var decoded = decodeDIB(frame.data, frame.width, frame.height);
+        var canvas = createCanvas(decoded.imageData.width, decoded.imageData.height);
+        canvas.getContext('2d').putImageData(decoded.imageData, 0, 0);
+        return Promise.resolve({ canvas: canvas });
+    }
+
+    function redoFromFrames(entry) {
+        // 取最大的一帧作为素材：放大会糊，用小帧放大做图标没有意义
+        var largest = entry.frames.slice().sort(function (a, b) {
+            return b.width * b.height - a.width * a.height;
+        })[0];
+        if (!largest) return;
+
+        canvasToBlob(largest.canvas, 'image/png').then(function (blob) {
+            var file = new File([blob], entry.baseName + '_' + largest.width + 'x' + largest.height + '.png', { type: 'image/png' });
+            return loadImageFromBlob(file).then(function (loaded) {
+                sources.push({
+                    id: 'src-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                    name: file.name,
+                    outName: entry.baseName + '_new.ico',
+                    img: loaded.img,
+                    url: loaded.url
+                });
+                var tabButton = document.querySelector('.tab[data-tab="toico"]');
+                if (tabButton) tabButton.click();
+                updateICOButtons();
+                generateICO();
+                toast('已把 ' + largest.width + '×' + largest.height + ' 帧带回图标制作页');
+            });
+        });
+    }
+
+    /* =====================================================================
+     *  事件绑定
+     * ===================================================================== */
+
+    function bindDropzone(zoneId, inputId, handler) {
+        var zone = $(zoneId);
+        var input = $(inputId);
+
+        zone.addEventListener('click', function () { input.click(); });
+        input.addEventListener('change', function () {
+            if (input.files && input.files.length) handler(input.files);
+            input.value = '';
+        });
+        ['dragenter', 'dragover'].forEach(function (type) {
+            zone.addEventListener(type, function (event) {
+                event.preventDefault();
+                zone.classList.add('dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(function (type) {
+            zone.addEventListener(type, function (event) {
+                event.preventDefault();
+                if (type === 'dragleave' && zone.contains(event.relatedTarget)) return;
+                zone.classList.remove('dragover');
+            });
+        });
+        zone.addEventListener('drop', function (event) {
+            var files = event.dataTransfer && event.dataTransfer.files;
+            if (files && files.length) handler(files);
+        });
+    }
+
+    bindDropzone('dz-toico', 'file-toico', addSources);
+    bindDropzone('dz-fromico', 'file-fromico', handleIcoFiles);
+
+    // 整页拖拽：按当前标签页路由
+    ['dragenter', 'dragover'].forEach(function (type) {
+        document.addEventListener(type, function (event) { event.preventDefault(); });
+    });
+    document.addEventListener('drop', function (event) {
+        event.preventDefault();
+        var files = event.dataTransfer && event.dataTransfer.files;
+        if (!files || !files.length) return;
+        if (activeTab === 'toico') addSources(files);
+        else handleIcoFiles(files);
+    });
+
+    // 粘贴（Ctrl + V）图片或 .ico 文件
+    document.addEventListener('paste', function (event) {
+        var items = event.clipboardData && event.clipboardData.files;
+        if (!items || !items.length) return;
+        var files = Array.prototype.slice.call(items);
+        if (activeTab === 'toico') {
+            files = files.filter(function (f) { return /^image\//.test(f.type) || /\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(f.name); });
+            if (!files.length) return;
+            event.preventDefault();
+            addSources(files);
+            toast('已从剪贴板读取 ' + files.length + ' 张图片');
+        } else {
+            if (!files.length) return;
+            event.preventDefault();
+            handleIcoFiles(files);
+            toast('已从剪贴板读取文件');
+        }
+    });
+
+    $('btn-clear').addEventListener('click', function () {
+        clearToIco();
+        toast('已清空');
+    });
+    $('btn-download-all').addEventListener('click', function () {
+        if (!icoResults.length) return;
+        downloadSequence(icoResults.map(function (result) {
+            return { blob: result.blob, filename: result.source.outName };
+        }));
+        toast('已开始下载 ' + icoResults.length + ' 个 ICO');
+    });
+    $('btn-clear-fromico').addEventListener('click', function () {
+        icoFiles = [];
+        $('file-fromico').value = '';
+        renderFromIcoResults();
+        toast('已清空');
+    });
+    $('btn-download-frames').addEventListener('click', function () {
+        var jobs = icoFiles
+            .filter(function (entry) { return !entry.error; })
+            .map(function (entry) { return frameBlobs(entry); });
+        Promise.all(jobs).then(function (lists) {
+            var items = [];
+            lists.forEach(function (list) {
+                list.forEach(function (item) { items.push(item); });
+            });
+            if (!items.length) return;
+            dedupeFilenames(items);
+            downloadSequence(items);
+            toast('已开始下载 ' + items.length + ' 张图片');
+        });
+    });
+
+    ['fit-mode', 'encode-mode', 'pad-color'].forEach(function (id) {
+        $(id).addEventListener('change', scheduleGenerate);
+    });
+    $('out-format').addEventListener('change', function () {
+        if (icoFiles.length) renderFromIcoResults();
+    });
+
+    renderSizeChips();
+    bindPresets();
+    placeTabSlider(false);
+    updateICOButtons();
+
+    // 供页内自动化测试使用
+    window.__icoTool = {
+        encodeDIB: encodeDIB,
+        assembleICO: assembleICO,
+        parseICO: parseICO,
+        decodeDIB: decodeDIB,
+        renderFrame: renderFrame,
+        getSources: function () { return sources; },
+        getResults: function () { return icoResults; },
+        getIcoFiles: function () { return icoFiles; },
+        frameBlobs: frameBlobs,
+        packFrames: packFrames,
+        setSizes: function (list) {
+            selectedSizes = list.slice().sort(function (a, b) { return a - b; });
+            renderSizeChips();
+            generateICO();
+        }
+    };
+})();
+</script>
+</body>
+</html>
