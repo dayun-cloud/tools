@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="曼波配音 STUDIO：选择热门AI角色，输入台词一键生成配音，支持多段落与多格式文本批量导入，无需注册。">
+<meta name="theme-color" content="#080e12">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="assets/manbo.ico">
+<title>曼波配音生成器</title>
+<script>
+    /* 在首帧前定好主题，避免闪白 */
+    try {
+        document.documentElement.dataset.theme = localStorage.getItem('theme') === 'light' ? 'light' : 'dark';
+    } catch (e) {}
+</script>
+<link rel="stylesheet" href="./src/manbo.css">
+</head>
+<body>
+
+<!-- 图标精灵 -->
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+    <symbol id="i-wave" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="3" y="9" width="3" height="6" rx="1.5"/>
+        <rect x="8" y="4" width="3" height="16" rx="1.5"/>
+        <rect x="13" y="7" width="3" height="10" rx="1.5"/>
+        <rect x="18" y="10" width="3" height="4" rx="1.5"/>
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2c0-.9 1-1.5 1.8-1l9.4 6.8c.7.5.7 1.5 0 2l-9.4 6.8c-.8.5-1.8-.1-1.8-1V5.2z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="4.5" width="4" height="15" rx="1.4"/><rect x="13.5" y="4.5" width="4" height="15" rx="1.4"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.6l1.9 5.5 5.5 1.9-5.5 1.9L12 17.4l-1.9-5.5L4.6 10l5.5-1.9L12 2.6z"/><path d="M19 15.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z" opacity=".6"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.9A9 9 0 1 1 11.1 3a7.2 7.2 0 0 0 9.9 9.9z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.4v2M12 19.6v2M2.4 12h2M19.6 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11.5M12 15l-4-4M12 15l4-4M4.5 20.5h15"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11" rx="2.4"/><path d="M15.5 8.5V6.4A1.9 1.9 0 0 0 13.6 4.5H6.4A1.9 1.9 0 0 0 4.5 6.4v7.2a1.9 1.9 0 0 0 1.9 1.9h2.1"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5h15M9.5 3.5h5M6.5 6.5l.9 13a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4l.9-13"/><path d="M10 10.5v6M14 10.5v6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4L7.5 8.5M12 4l4.5 4.5M4.5 20.5h15"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-.6 4.2"/><path d="M20 4.5V11h-6.2"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13M14 4.5L17.5 8 14 11.5M20 16H7M10 12.5L6.5 16 10 19.5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="6.3"/><path d="M15.5 15.5L20 20"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l9 16H3l9-16z"/><path d="M12 9.5v4.5M12 17.2v.1"/></symbol>
+    <symbol id="i-vol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4v-5z"/><path d="M16 9a4 4 0 0 1 0 6M18.8 6.4a7.6 7.6 0 0 1 0 11.2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></symbol>
+</svg>
+
+<!-- 顶栏 -->
+<header class="topbar">
+    <a class="brand" href="/" aria-label="曼波配音 首页">
+        <span class="brand-mark">
+            <img class="brand-img" src="assets/manbo.ico" alt="" width="32" height="32">
+        </span>
+        <span class="brand-text">
+            <b>曼波配音</b>
+            <span>STUDIO</span>
+        </span>
+    </a>
+
+    <nav class="top-links" aria-label="站点导航">
+        <button class="nav-btn" id="btnHelp" type="button" aria-haspopup="dialog">使用指南</button>
+        <button class="nav-btn" id="btnAnnounce" type="button" aria-haspopup="dialog">公告</button>
+        <span class="nav-sep" aria-hidden="true"></span>
+        <a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">AI 创作台</a>
+        <a href="https://contact.dayun.cool" target="_blank" rel="noopener">问题反馈</a>
+        <a href="https://space.bilibili.com/192702710" target="_blank" rel="noopener">哔哩哔哩</a>
+    </nav>
+
+    <div class="top-actions">
+        <button class="icon-btn" id="btnTheme" type="button" title="切换深浅主题" aria-label="切换深浅主题">
+            <svg class="ic icon-moon" aria-hidden="true"><use href="#i-moon"></use></svg>
+            <svg class="ic icon-sun" aria-hidden="true"><use href="#i-sun"></use></svg>
+        </button>
+    </div>
+</header>
+
+<!-- 工作台 -->
+<main class="studio">
+    <!-- 左：台词台 -->
+    <section class="panel deck" aria-label="台词台">
+        <div class="role-card">
+            <div class="role-avatar"><span id="roleInitial">曼</span></div>
+            <div class="role-info">
+                <span class="eyebrow">当前角色</span>
+                <div class="role-line">
+                    <h1 id="voiceName">曼波</h1>
+                    <span class="limit-pill" id="roleLimit">300 字/段</span>
+                    <span class="role-meta" id="roleMeta">50 次 / 天</span>
+                </div>
+            </div>
+            <button class="btn-switch" id="btnVoicePicker" type="button" title="打开角色面板">
+                <svg class="ic" aria-hidden="true"><use href="#i-swap"></use></svg>
+                <span>切换</span>
+            </button>
+        </div>
+
+        <div class="section-head">
+            <span class="section-title">台词</span>
+            <span class="seg-meta" id="segMeta"></span>
+            <div class="toolbar">
+                <button class="link-btn" id="btnImportTxt" type="button" title="从 txt / json / csv / 字幕文件导入，自动分段">
+                    <svg class="ic" aria-hidden="true"><use href="#i-upload"></use></svg>
+                    批量导入
+                </button>
+                <button class="link-btn" id="btnReimport" type="button" hidden title="从上一次导入的段落里重新选择">
+                    <svg class="ic" aria-hidden="true"><use href="#i-refresh"></use></svg>
+                    重新选取
+                </button>
+                <span class="pop-anchor">
+                    <button class="link-btn danger" id="btnClearText" type="button">
+                        <svg class="ic" aria-hidden="true"><use href="#i-trash"></use></svg>
+                        清空
+                    </button>
+                    <div class="popover" id="clearTextPop" role="dialog" aria-label="确认清空台词">
+                        <p id="clearTextMsg">清空全部文本段落？</p>
+                        <div class="pop-actions">
+                            <button class="btn btn-danger-ghost" id="clearTextYes" type="button">清空</button>
+                            <button class="btn" type="button" data-pop-close>取消</button>
+                        </div>
+                    </div>
+                </span>
+            </div>
+            <input type="file" id="txtFile" accept=".txt,.json,.csv,.srt,.vtt,.ass,.ssa,.lrc" hidden>
+        </div>
+
+        <div class="script" id="scriptArea">
+            <div id="segments"></div>
+            <div class="add-tail">
+                <button class="add-seg" id="btnAddSeg" type="button">
+                    <svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg>
+                    添加一段
+                </button>
+                <span class="seg-limit" id="segLimit" hidden>已达上限 10 段</span>
+            </div>
+        </div>
+
+        <div class="deck-foot">
+            <button class="btn-generate" id="btnGenerate" type="button" disabled>
+                <svg class="ic" aria-hidden="true"><use href="#i-sparkle"></use></svg>
+                <span>开始生成</span>
+                <kbd id="genKbd">Ctrl ↵</kbd>
+            </button>
+            <p class="quota" id="quotaHint">「曼波」每天 50 次免费额度（源 API 站限制）· 其他角色不限次数</p>
+        </div>
+    </section>
+
+    <!-- 右：生成记录 -->
+    <section class="panel feed" aria-label="生成记录">
+        <div class="feed-head">
+            <div class="feed-title-row">
+                <div class="feed-title">
+                    <span class="live-dot" aria-hidden="true"></span>
+                    <h2>生成记录</h2>
+                    <span class="rec-count" id="recCount"></span>
+                    <span class="rec-note">音频会过期，请及时保存</span>
+                </div>
+                <div class="feed-tools">
+                    <label class="pick pick--text" title="批量下载时同时生成 记录.csv（文本+文件名）">
+                        <input type="checkbox" id="csvRecord">
+                        <span aria-hidden="true"></span>
+                        下载生成记录
+                    </label>
+                    <button class="link-btn" id="btnDlSelected" type="button" title="逐条下载已勾选的记录">
+                        <svg class="ic" aria-hidden="true"><use href="#i-download"></use></svg>
+                        <span>下载选中</span>
+                    </button>
+                    <span class="pop-anchor">
+                        <button class="link-btn danger" id="btnClearAll" type="button">
+                            <svg class="ic" aria-hidden="true"><use href="#i-trash"></use></svg>
+                            <span>清空</span>
+                        </button>
+                        <div class="popover" id="clearPop" role="dialog" aria-label="确认清空记录">
+                            <p>确定清空全部生成记录？</p>
+                            <div class="pop-actions">
+                                <button class="btn btn-danger-ghost" id="clearYes" type="button">清空</button>
+                                <button class="btn" type="button" data-pop-close>取消</button>
+                            </div>
+                        </div>
+                    </span>
+                </div>
+            </div>
+
+            <div class="prefs">
+                <label class="switch" title="生成完成后自动播放最新一条">
+                    <input type="checkbox" id="autoPlay">
+                    <i aria-hidden="true"></i>
+                    <span>自动播放</span>
+                </label>
+                <label class="vol" title="音量">
+                    <svg class="ic" aria-hidden="true"><use href="#i-vol"></use></svg>
+                    <input type="range" id="volume" min="0" max="1" step="0.05" value="1" aria-label="音量">
+                </label>
+            </div>
+        </div>
+
+        <div class="feed-list" id="records">
+            <div class="blank" id="emptyState">
+                <svg viewBox="0 0 96 96" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="blankGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#66a7bd"/>
+                            <stop offset="1" stop-color="#88cfde"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="48" cy="48" r="35" fill="none" stroke="url(#blankGrad)" stroke-opacity=".22" stroke-width="1.4"/>
+                    <circle cx="48" cy="48" r="25" fill="none" stroke="url(#blankGrad)" stroke-opacity=".14" stroke-width="1.4"/>
+                    <g fill="url(#blankGrad)" opacity=".85">
+                        <rect x="27" y="41" width="4" height="14" rx="2"/>
+                        <rect x="35" y="33" width="4" height="30" rx="2"/>
+                        <rect x="43" y="27" width="4" height="42" rx="2"/>
+                        <rect x="51" y="36" width="4" height="24" rx="2"/>
+                        <rect x="59" y="31" width="4" height="34" rx="2"/>
+                        <rect x="67" y="43" width="4" height="10" rx="2"/>
+                    </g>
+                </svg>
+                <p>还没有生成记录</p>
+                <span>在左侧写点台词，按 <kbd>Ctrl</kbd> + <kbd>↵</kbd> 或点「开始生成」</span>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- 角色面板 -->
+<div class="veil" id="voiceModal" aria-hidden="true">
+    <div class="sheet sheet-palette" role="dialog" aria-modal="true" aria-labelledby="voiceModalTitle">
+        <div class="sheet-head">
+            <h2 id="voiceModalTitle">选择角色</h2>
+            <span class="sheet-count" id="voiceCount">–</span>
+            <button class="sheet-x" type="button" data-close aria-label="关闭">
+                <svg class="ic" aria-hidden="true"><use href="#i-x"></use></svg>
+            </button>
+        </div>
+        <div class="search-wrap">
+            <svg class="ic" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input type="text" class="palette-search" id="voiceSearch" placeholder="输入角色名过滤…" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="palette-grid" id="voiceGrid"></div>
+        <p class="palette-tip">点角色名直接选用 · 点 ▶ 试听（使用站点内置音频，不占用生成次数）</p>
+    </div>
+</div>
+
+<!-- 导入段落选择 -->
+<div class="veil" id="importModal" aria-hidden="true">
+    <div class="sheet sheet-import" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+        <div class="sheet-head">
+            <h2 id="importTitle">选择要导入的段落</h2>
+            <button class="sheet-x" type="button" data-close aria-label="关闭">
+                <svg class="ic" aria-hidden="true"><use href="#i-x"></use></svg>
+            </button>
+        </div>
+        <p class="import-tip" id="importTip"></p>
+        <div class="import-list" id="importList"></div>
+        <div class="sheet-actions">
+            <button class="btn" type="button" data-close>取消</button>
+            <button class="btn btn-primary" id="btnImportConfirm" type="button" disabled>确认导入</button>
+        </div>
+    </div>
+</div>
+
+<!-- 公告 -->
+<div class="veil" id="announceModal" aria-hidden="true">
+    <div class="sheet sheet-announce" role="dialog" aria-modal="true" aria-labelledby="announceTitle">
+        <div class="sheet-head">
+            <h2 id="announceTitle">重要通知</h2>
+            <button class="sheet-x" type="button" data-close aria-label="关闭">
+                <svg class="ic" aria-hidden="true"><use href="#i-x"></use></svg>
+            </button>
+        </div>
+        <div class="announce-body" id="announceText"></div>
+        <div class="sheet-actions">
+            <button class="btn" id="announceMute" type="button">不再显示</button>
+            <button class="btn btn-primary" type="button" data-close>知道了</button>
+        </div>
+    </div>
+</div>
+
+<!-- 帮助 -->
+<div class="veil" id="helpModal" aria-hidden="true">
+    <div class="sheet sheet-help" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="sheet-head">
+            <h2 id="helpTitle">使用指南</h2>
+            <button class="sheet-x" type="button" data-close aria-label="关闭">
+                <svg class="ic" aria-hidden="true"><use href="#i-x"></use></svg>
+            </button>
+        </div>
+        <div class="help-body">
+            <h3>角色与限制</h3>
+            <ul class="help-list">
+                <li>先选角色（默认「曼波」），台词最多 <b>10 段</b>；「曼波」单段限 <b>300 字</b>，其他角色限 <b>1024 字</b>。</li>
+                <li>「曼波」每天免费 <b>50 次</b>，超出会报错（源 API 站限制，前端无法解除）；其他角色暂无次数限制。</li>
+                <li>若 API 报错为源站问题，一般等周末会恢复，可稍后再试。</li>
+            </ul>
+
+            <h3>批量导入</h3>
+            <ul class="help-list">
+                <li>支持 txt / json / csv / srt / vtt / ass / ssa / lrc，按 UTF-8 读取，自动分段。</li>
+                <li>超过 10 段时会打开选择面板，可勾选要导入的段落，也支持<b>按住鼠标拖动连续多选</b>。</li>
+                <li>导入会<b>整体替换</b>现有台词；导入过的文件可在「重新选取」里恢复上一次勾选。</li>
+            </ul>
+
+            <h3>试听与记录</h3>
+            <ul class="help-list">
+                <li>试听使用站点内置的本地音频，不占用生成次数；播放过的音频会缓存到本机浏览器，之后不再请求服务器。</li>
+                <li>生成记录最多保留 <b>100 条</b>，存在本机浏览器，清除数据会丢失，请及时下载保存。</li>
+            </ul>
+
+            <h3>网络与付费</h3>
+            <ul class="help-list">
+                <li>如果音频无法播放 / 下载 / 加载慢，为源站问题，可稍后再试。</li>
+                <li>所有生成音频统一经由 <a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">VKit</a> 服务器代理分发；如需使用付费版：<a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">前往 VKit</a>。</li>
+                <li>语音生成由 <a href="https://api.milorapart.top/" target="_blank" rel="noopener">Milora</a> 提供 API 支持。</li>
+            </ul>
+
+            <div class="help-links">
+                <a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">AI 创作台</a>
+                <a href="https://contact.dayun.cool" target="_blank" rel="noopener">问题反馈</a>
+                <a href="ranking">从夯到拉排行榜</a>
+                <a href="/">回到主站</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script>
+(() => {
+    'use strict';
+
+    /* ============================================================
+       常量与状态
+       ============================================================ */
+    const API_BASE      = 'https://api.milorapart.top/apis';
+    const PREVIEW_TEXT  = '欢迎使用曼波配音';
+    const LOCAL_PREVIEW = 'assets/previews/';
+    const LOCAL_PREVIEW_VERSION = 1;
+    const MAX_SEGMENTS  = 10;
+    const MAX_IMPORT    = 10;
+    const MAX_RECORDS   = 100;
+    const VOICE_TTL     = 24 * 3600e3;
+    const MANBO_CHARS   = 300;
+    const OTHER_CHARS   = 1024;
+    // 付费接口不做；已知「如来佛祖」音色异常，直接下架
+    const EXCLUDED_VOICES = new Set(['曼波付费', '如来佛祖']);
+
+    const LS = {
+        voice: 'manbo_voice',
+        volume: 'manbo_volume',
+        autoplay: 'manbo_autoplay',
+        csvRecord: 'manbo_csv_record',
+        history: 'tts_history',
+        announce: 'announcement_data',
+        theme: 'theme',
+        voices: 'manbo_voices',
+    };
+
+    let voices = ['曼波'];
+    let currentVoice = localStorage.getItem(LS.voice) || '曼波';
+    let records = [];
+    let autoPlay = localStorage.getItem(LS.autoplay) === '1';
+    let csvRecord = localStorage.getItem(LS.csvRecord) === '1';
+    let volume = parseFloat(localStorage.getItem(LS.volume));
+    if (isNaN(volume) || volume < 0 || volume > 1) volume = 1;
+
+    let importedSegments = [];
+    const importedSelection = new Set();
+
+    const previewURLs = new Map();
+    const localPreviewCache = new Map();
+    let previewAudio = null;
+    let previewToken = 0;
+    let previewState = { voice: null, btn: null };
+    const liveAudio = new Set();
+
+    const $  = (s, el) => (el || document).querySelector(s);
+    const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const uid = () => 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    const charLimit = () => currentVoice === '曼波' ? MANBO_CHARS : OTHER_CHARS;
+
+    /* ============================================================
+       弹窗基础
+       ============================================================ */
+    let modalStack = [];
+
+    function openModal(sel) {
+        const el = typeof sel === 'string' ? $(sel) : sel;
+        if (!el || el.classList.contains('open')) return;
+        el.classList.add('open');
+        el.setAttribute('aria-hidden', 'false');
+        modalStack = modalStack.filter(x => x !== el);
+        modalStack.push(el);
+        document.documentElement.style.overflow = 'hidden';
+    }
+
+    function closeModal(el) {
+        if (!el) return;
+        el.classList.remove('open');
+        el.setAttribute('aria-hidden', 'true');
+        modalStack = modalStack.filter(x => x !== el);
+        if (!modalStack.length) document.documentElement.style.overflow = '';
+    }
+
+    function closeAnnounce(dontShow) {
+        setAnnounceData(dontShow);
+        closeModal($('#announceModal'));
+    }
+
+    $$('.veil').forEach(v => {
+        v.addEventListener('click', e => {
+            if (e.target !== v) return;
+            if (v.id === 'announceModal') closeAnnounce(false);
+            else closeModal(v);
+        });
+    });
+
+    $$('[data-close]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const v = btn.closest('.veil');
+            if (v && v.id === 'announceModal') closeAnnounce(false);
+            else closeModal(v);
+        });
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            hidePops();
+            const top = modalStack[modalStack.length - 1];
+            if (top) {
+                if (top.id === 'announceModal') closeAnnounce(false);
+                else closeModal(top);
+            }
+        }
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            generate();
+        }
+    });
+
+    /* ============================================================
+       Toast
+       ============================================================ */
+    function toast(msg, type) {
+        const el = document.createElement('div');
+        el.className = 'toast' + (type ? ' toast--' + type : '');
+        el.textContent = msg;
+        $('#toasts').appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+        setTimeout(() => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 320);
+        }, 2400);
+    }
+
+    /* ============================================================
+       文件解析
+       ============================================================ */
+    const CSV_HEADER_WORDS = new Set(['text', 'content', '文本', '内容', '文字', '台词']);
+
+    function parseTextFile(fileName, content) {
+        const dot = fileName.lastIndexOf('.');
+        const ext = dot >= 0 ? fileName.slice(dot).toLowerCase() : '';
+        let segments;
+        switch (ext) {
+            case '.json': segments = parseJsonText(content); break;
+            case '.csv':  segments = parseCsvText(content); break;
+            case '.srt':  segments = parseSubtitleText(content, false); break;
+            case '.vtt':  segments = parseSubtitleText(content, true); break;
+            case '.ass':
+            case '.ssa':  segments = parseAssText(content); break;
+            case '.lrc':  segments = parseLrcText(content); break;
+            default:      segments = parsePlainText(content);
+        }
+        if (segments.length === 0) throw new Error('文件中没有可导入的文本');
+        return segments;
+    }
+
+    const stripBom = s => s.startsWith('\ufeff') ? s.slice(1) : s;
+
+    function parsePlainText(content) {
+        return stripBom(content).split('\n').map(l => l.trim()).filter(Boolean);
+    }
+
+    function parseJsonText(content) {
+        const trimmed = content.trim();
+        if (!trimmed) throw new Error('JSON 文件内容为空');
+        const segments = [];
+        const pushText = v => { if (typeof v === 'string' && v.trim()) segments.push(v.trim()); };
+
+        if (trimmed[0] === '{') {
+            for (const obj of parseConcatenatedObjects(trimmed)) pushText(obj.text);
+            if (segments.length === 0) throw new Error('JSON 格式不支持，请使用字符串数组或 [{"text":"..."}] 格式');
+            return segments;
+        }
+
+        let parsed;
+        try { parsed = JSON.parse(trimmed); }
+        catch { throw new Error('JSON 格式不支持，请使用字符串数组或 [{"text":"..."}] 格式'); }
+
+        if (Array.isArray(parsed)) {
+            for (const item of parsed) {
+                if (typeof item === 'string') pushText(item);
+                else if (item && typeof item === 'object') pushText(item.text);
+            }
+        }
+        if (segments.length === 0) throw new Error('JSON 格式不支持，请使用字符串数组或 [{"text":"..."}] 格式');
+        return segments;
+    }
+
+    function parseConcatenatedObjects(input) {
+        const objects = [];
+        let i = 0;
+        while (i < input.length) {
+            if (input[i] !== '{') { i++; continue; }
+            let depth = 0, inString = false, escaped = false, end = -1;
+            for (let j = i; j < input.length; j++) {
+                const ch = input[j];
+                if (inString) {
+                    if (escaped) escaped = false;
+                    else if (ch === '\\') escaped = true;
+                    else if (ch === '"') inString = false;
+                    continue;
+                }
+                if (ch === '"') inString = true;
+                else if (ch === '{') depth++;
+                else if (ch === '}') { depth--; if (depth === 0) { end = j; break; } }
+            }
+            if (end === -1) break;
+            try {
+                const parsed = JSON.parse(input.slice(i, end + 1));
+                if (parsed && typeof parsed === 'object') objects.push(parsed);
+            } catch (_) {}
+            i = end + 1;
+        }
+        return objects;
+    }
+
+    function parseCsvRecords(content) {
+        const records = [];
+        let row = [], field = '', inQuotes = false, i = 0;
+        while (i < content.length) {
+            const ch = content[i];
+            if (inQuotes) {
+                if (ch === '"') {
+                    if (content[i + 1] === '"') { field += '"'; i += 2; continue; }
+                    inQuotes = false; i++; continue;
+                }
+                field += ch; i++; continue;
+            }
+            if (ch === '"') { inQuotes = true; i++; continue; }
+            if (ch === ',') { row.push(field); field = ''; i++; continue; }
+            if (ch === '\n' || ch === '\r') {
+                if (ch === '\r' && content[i + 1] === '\n') i++;
+                row.push(field); records.push(row); row = []; field = ''; i++; continue;
+            }
+            field += ch; i++;
+        }
+        if (field !== '' || row.length > 0) { row.push(field); records.push(row); }
+        return records;
+    }
+
+    function parseCsvText(content) {
+        const segments = [];
+        let headerSeen = false;
+        for (const record of parseCsvRecords(stripBom(content))) {
+            if (record.length === 0 || !record[0].trim()) continue;
+            const first = record[0].trim();
+            if (!headerSeen) {
+                headerSeen = true;
+                if (CSV_HEADER_WORDS.has(first)) continue;
+            }
+            segments.push(first);
+        }
+        return segments;
+    }
+
+    function parseSubtitleText(content, vtt) {
+        const segments = [];
+        const lines = stripBom(content).split('\n');
+        let inBlock = false, inHeaderBlock = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line === '') { inBlock = false; inHeaderBlock = false; continue; }
+            if (inHeaderBlock) continue;
+            if (vtt && i === 0 && line.startsWith('WEBVTT')) continue;
+
+            if (!inBlock) {
+                if (/^[+-]?\d+$/.test(line)) { inBlock = true; continue; }
+                if (vtt && (line.startsWith('STYLE') || line.startsWith('REGION') || line.startsWith('NOTE'))) {
+                    inHeaderBlock = true; continue;
+                }
+                if (line.includes('-->')) { inBlock = true; continue; }
+                inBlock = true;
+            }
+            if (line.includes('-->')) continue;
+            const text = stripSubtitleTags(line).trim();
+            if (text !== '') segments.push(text);
+        }
+        return segments;
+    }
+
+    function parseAssText(content) {
+        const segments = [];
+        const lines = stripBom(content).split('\n');
+        let isAss = false;
+        for (const line of lines) {
+            if (line.trim().toUpperCase().startsWith('[V4+ STYLES]')) { isAss = true; break; }
+        }
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.toUpperCase().startsWith('DIALOGUE:')) continue;
+            const body = trimmed.slice('Dialogue:'.length);
+            const sep = isAss ? 9 : 8;
+            const parts = splitN(body, ',', sep + 1);
+            if (parts.length < sep + 1) continue;
+            const text = stripSubtitleTags(parts[sep]).trim();
+            if (text !== '') segments.push(text);
+        }
+        return segments;
+    }
+
+    function parseLrcText(content) {
+        const segments = [];
+        const lineRe = /\[[0-9:.]+\]\s*(.*)/;
+        for (const raw of stripBom(content).split('\n')) {
+            const trimmed = raw.trim();
+            if (trimmed === '') continue;
+            const match = trimmed.match(lineRe);
+            if (match) {
+                if (match[1].trim() !== '') segments.push(match[1].trim());
+                continue;
+            }
+            if (trimmed.startsWith('[')) continue;
+            segments.push(trimmed);
+        }
+        return segments;
+    }
+
+    function splitN(s, separator, n) {
+        const parts = s.split(separator);
+        if (parts.length <= n) return parts;
+        return [...parts.slice(0, n - 1), parts.slice(n - 1).join(separator)];
+    }
+
+    function stripSubtitleTags(s) {
+        return s.replace(/<[^>]+>/g, '').replace(/\{[^}]*\}/g, '').replace(/\s{2,}/g, ' ').trim();
+    }
+
+    /* ============================================================
+       API
+       ============================================================ */
+    async function fetchList() {
+        try {
+            const cached = JSON.parse(localStorage.getItem(LS.voices) || 'null');
+            if (cached && Date.now() - cached.ts < VOICE_TTL && Array.isArray(cached.speakers) && cached.speakers.length) {
+                applyVoices(cached.speakers);
+            }
+        } catch (_) {}
+
+        const fetchWithTimeout = async ms => {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), ms);
+            try { return await fetch(API_BASE + '/AIvoice/?type=list', { signal: ctrl.signal }); }
+            finally { clearTimeout(timer); }
+        };
+
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                const res = await fetchWithTimeout(8000);
+                const data = await res.json();
+                if (data.code === 200 && Array.isArray(data.speakers) && data.speakers.length) {
+                    localStorage.setItem(LS.voices, JSON.stringify({ ts: Date.now(), speakers: data.speakers }));
+                    applyVoices(data.speakers);
+                    return;
+                }
+            } catch (_) {}
+        }
+        if (voices.length <= 1) toast('角色列表加载失败，仅可用「曼波」', 'warn');
+    }
+
+    function applyVoices(speakers) {
+        const rest = speakers.filter(v => !EXCLUDED_VOICES.has(v) && v !== '曼波');
+        rest.sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
+        voices = ['曼波', ...rest];
+        $('#voiceCount').textContent = voices.length + '个';
+        if (currentVoice !== '曼波' && !voices.includes(currentVoice)) {
+            currentVoice = '曼波';
+            localStorage.setItem(LS.voice, currentVoice);
+        }
+        renderCurrentVoice();
+        if ($('#voiceModal').classList.contains('open')) renderVoiceGrid($('#voiceSearch').value);
+    }
+
+    function renderCurrentVoice() {
+        $('#voiceName').textContent = currentVoice;
+        $('#roleInitial').textContent = currentVoice.slice(0, 1);
+        $('#roleLimit').textContent = charLimit() + ' 字/段';
+        $('#roleMeta').textContent = currentVoice === '曼波' ? '50 次 / 天' : '不限次数';
+        $('#quotaHint').textContent = currentVoice === '曼波'
+            ? '「曼波」每天 50 次免费额度（源 API 站限制）· 其他角色不限次数'
+            : '当前角色不限生成次数 · 单段上限 ' + charLimit() + ' 字';
+
+        $$('#segments .seg-text').forEach(t => {
+            t.maxLength = charLimit();
+            updateSegCount(t.closest('.seg'));
+        });
+        if (importedSegments.length && $('#importModal').classList.contains('open')) renderImportList();
+    }
+
+    function buildGenUrl(voice, text) {
+        const p = new URLSearchParams({ text });
+        if (voice === '曼波') {
+            p.set('format', 'mp3');
+            return API_BASE + '/mbAIsc?' + p.toString();
+        }
+        p.set('speaker', voice);
+        return API_BASE + '/AIvoice/?' + p.toString();
+    }
+
+    const REMOTE_AUDIO_PROXY = 'https://vkitpro.dayun.cool/api/manbo/remote-audio?u=';
+    function wrapRemoteAudio(url, name) {
+        if (!url || url.startsWith(REMOTE_AUDIO_PROXY)) return url;
+        let link = REMOTE_AUDIO_PROXY + encodeURIComponent(url);
+        // name 由代理透传到下载头；vkit 侧会再清洗一遍，这里只做 URL 编码
+        if (name) link += '&name=' + encodeURIComponent(name);
+        return link;
+    }
+    function audioFileName(voice, text) {
+        const safe = (text || '').slice(0, 10).replace(/[\\/:*?"<>|\r\n]/g, '');
+        return (voice || '曼波') + '-' + safe + '.mp3';
+    }
+
+    async function requestAudio(url) {
+        let res;
+        try { res = await fetch(url); }
+        catch (_) { throw new Error('网络异常，生成失败'); }
+        let data;
+        try { data = await res.json(); }
+        catch (_) { throw new Error('网络异常，生成失败'); }
+        if (data && data.code === 200 && data.url) return data.url;
+        throw new Error((data && data.msg) || 'API 异常，生成失败');
+    }
+
+    /* ============================================================
+       试听缓存（IndexedDB）
+       ============================================================ */
+    function idb() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open('manbo_db', 2);
+            req.onupgradeneeded = () => {
+                const db = req.result;
+                if (!db.objectStoreNames.contains('previews')) db.createObjectStore('previews');
+                if (!db.objectStoreNames.contains('previewFiles')) db.createObjectStore('previewFiles');
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    const idbRead = async (storeName, key) => {
+        try {
+            const db = await idb();
+            return await new Promise((res, rej) => {
+                const r = db.transaction(storeName).objectStore(storeName).get(key);
+                r.onsuccess = () => res(r.result);
+                r.onerror = () => rej(r.error);
+            });
+        } catch (_) { return undefined; }
+    };
+
+    const idbWrite = async (storeName, key, value) => {
+        try {
+            const db = await idb();
+            await new Promise((res, rej) => {
+                const r = db.transaction(storeName, 'readwrite').objectStore(storeName).put(value, key);
+                r.onsuccess = () => res();
+                r.onerror = () => rej(r.error);
+            });
+        } catch (_) {}
+    };
+
+    const idbGet = key => idbRead('previews', key);
+    const idbSet = (key, blob) => idbWrite('previews', key, blob);
+    const idbGetFile = key => idbRead('previewFiles', key);
+    const idbSetFile = (key, value) => idbWrite('previewFiles', key, value);
+
+    function localPreviewUrl(voice) {
+        return LOCAL_PREVIEW + encodeURIComponent(voice) + '.mp3';
+    }
+
+    // 本地试听优先，避免为已有音频的角色再消耗接口次数
+    async function hasLocalPreview(voice) {
+        if (localPreviewCache.has(voice)) return localPreviewCache.get(voice);
+        let ok = false;
+        try {
+            const res = await fetch(localPreviewUrl(voice), { method: 'HEAD' });
+            const type = (res.headers.get('content-type') || '').toLowerCase();
+            // 开发服务器对缺失文件会回退 index.html（text/html），不能只看状态码
+            ok = res.ok && (type.startsWith('audio/') || type.includes('octet-stream'));
+        } catch (_) {}
+        localPreviewCache.set(voice, ok);
+        return ok;
+    }
+
+    async function getPreviewSrc(voice) {
+        const cachedSrc = previewURLs.get(voice);
+        if (cachedSrc) return cachedSrc;
+
+        // 1) 本地试听文件已缓存到 IndexedDB：直接用 blob，不再请求服务器
+        const cached = await idbGetFile(voice);
+        if (cached && cached.version === LOCAL_PREVIEW_VERSION && cached.blob instanceof Blob) {
+            const src = URL.createObjectURL(cached.blob);
+            previewURLs.set(voice, src);
+            return src;
+        }
+
+        // 2) 首次播放：下载本地 MP3，写入 IndexedDB，之后不再请求
+        if (await hasLocalPreview(voice)) {
+            const localUrl = localPreviewUrl(voice);
+            try {
+                const resp = await fetch(localUrl);
+                if (!resp.ok) throw new Error('bad');
+                const blob = await resp.blob();
+                if (blob.size > 0) {
+                    idbSetFile(voice, {
+                        blob,
+                        version: LOCAL_PREVIEW_VERSION,
+                        ts: Date.now(),
+                    });
+                    const src = URL.createObjectURL(blob);
+                    previewURLs.set(voice, src);
+                    return src;
+                }
+            } catch (_) {
+                /* 下载失败就退回直接用 URL 播放 */
+            }
+            previewURLs.set(voice, localUrl);
+            return localUrl;
+        }
+
+        // 3) 本地缺失：旧版接口试听缓存/接口
+        const blob = await idbGet(voice);
+        if (blob) {
+            const src = URL.createObjectURL(blob);
+            previewURLs.set(voice, src);
+            return src;
+        }
+
+        const url = await requestAudio(buildGenUrl(voice, PREVIEW_TEXT));
+        let src = url;
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error('bad');
+            const b = await resp.blob();
+            if (b.size > 0) {
+                idbSet(voice, b);
+                src = URL.createObjectURL(b);
+            }
+        } catch (_) {
+            /* 音频域名无 CORS，退回直接用 URL 播放 */
+        }
+        previewURLs.set(voice, src);
+        return src;
+    }
+
+    function setPreviewBtn(btn, state) {
+        if (!btn) return;
+        btn.classList.toggle('is-loading', state === 'loading');
+        btn.classList.toggle('is-playing', state === 'playing');
+        btn.disabled = state === 'loading';
+    }
+
+    async function playPreview(voice, btn) {
+        if (previewState.voice === voice && previewAudio && !previewAudio.paused) {
+            previewAudio.pause();
+            if (previewState.btn) setPreviewBtn(previewState.btn, 'idle');
+            previewState = { voice: null, btn: null };
+            return;
+        }
+
+        stopAllAudio();
+        const token = ++previewToken;
+        setPreviewBtn(btn, 'loading');
+
+        try {
+            const src = await getPreviewSrc(voice);
+            if (token !== previewToken) return;
+            if (!previewAudio) previewAudio = new Audio();
+            previewAudio.pause();
+            previewAudio.src = src;
+            previewAudio.volume = volume;
+            previewState = { voice, btn };
+            setPreviewBtn(btn, 'playing');
+
+            previewAudio.onended = () => {
+                setPreviewBtn(btn, 'idle');
+                if (previewState.btn === btn) previewState = { voice: null, btn: null };
+            };
+            previewAudio.onerror = () => {
+                setPreviewBtn(btn, 'idle');
+                toast('试听播放失败，请稍后重试', 'error');
+            };
+            await previewAudio.play();
+        } catch (err) {
+            if (token !== previewToken) return;
+            setPreviewBtn(btn, 'idle');
+            toast('试听失败：' + (err.message || '网络异常'), 'error');
+        }
+    }
+
+    /* ============================================================
+       角色面板
+       ============================================================ */
+    function renderVoiceGrid(filter) {
+        stopAllAudio();
+        const grid = $('#voiceGrid');
+        const kw = (filter || '').trim();
+        const list = kw ? voices.filter(v => v.includes(kw)) : voices;
+        if (!list.length) {
+            grid.innerHTML = '<p class="palette-empty">没有匹配的角色</p>';
+            return;
+        }
+        grid.innerHTML = list.map(v => `
+            <div class="vchip ${v === currentVoice ? 'active' : ''}" data-voice="${esc(v)}" role="button" tabindex="0">
+                <span class="vchip-name">${esc(v)}</span>
+                <button class="vchip-play" type="button" data-preview="${esc(v)}" title="试听 ${esc(v)}" aria-label="试听 ${esc(v)}">
+                    <svg class="ic ic-play" aria-hidden="true"><use href="#i-play"></use></svg>
+                    <svg class="ic ic-pause" aria-hidden="true"><use href="#i-pause"></use></svg>
+                </button>
+            </div>`).join('');
+    }
+
+    function selectVoice(voice) {
+        stopAllAudio();
+        currentVoice = voice;
+        localStorage.setItem(LS.voice, currentVoice);
+        renderCurrentVoice();
+        closeModal($('#voiceModal'));
+        toast('已选择「' + currentVoice + '」');
+    }
+
+    function bindVoiceGrid() {
+        const grid = $('#voiceGrid');
+
+        grid.addEventListener('click', e => {
+            const playBtn = e.target.closest('[data-preview]');
+            if (playBtn) {
+                e.stopPropagation();
+                playPreview(playBtn.dataset.preview, playBtn);
+                return;
+            }
+            const chip = e.target.closest('.vchip');
+            if (!chip) return;
+            selectVoice(chip.dataset.voice);
+        });
+
+        grid.addEventListener('keydown', e => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            if (e.target.closest('[data-preview]')) return;
+            const chip = e.target.closest('.vchip');
+            if (!chip) return;
+            e.preventDefault();
+            selectVoice(chip.dataset.voice);
+        });
+
+        $('#voiceSearch').addEventListener('input', e => renderVoiceGrid(e.target.value));
+    }
+
+    /* ============================================================
+       台词块
+       ============================================================ */
+    const segmentCount = () => $$('#segments .seg').length;
+    const getSegments = () => $$('#segments .seg-text').map(t => t.value.trim()).filter(Boolean);
+
+    function autoGrow(t) {
+        t.style.height = 'auto';
+        t.style.height = Math.min(t.scrollHeight, 220) + 'px';
+    }
+
+    function addSegment(text) {
+        if (segmentCount() >= MAX_SEGMENTS) {
+            toast('最多 ' + MAX_SEGMENTS + ' 段', 'warn');
+            return null;
+        }
+        const seg = document.createElement('div');
+        seg.className = 'seg';
+        seg.innerHTML = `
+            <span class="seg-no" aria-hidden="true"></span>
+            <textarea class="seg-text" maxlength="${charLimit()}" rows="3" placeholder="写这一段的台词…" aria-label="台词段落"></textarea>
+            <div class="seg-foot">
+                <span class="seg-count">0/${charLimit()}</span>
+                <button class="seg-x" type="button" title="删除这一段">
+                    <svg class="ic" aria-hidden="true"><use href="#i-x"></use></svg>
+                    删除
+                </button>
+            </div>`;
+        const ta = seg.querySelector('.seg-text');
+        ta.value = text || '';
+        $('#segments').appendChild(seg);
+        autoGrow(ta);
+        updateSegCount(seg);
+        refreshSegUi();
+        return seg;
+    }
+
+    function refreshSegUi() {
+        const all = $$('#segments .seg');
+        all.forEach((seg, i) => {
+            const no = seg.querySelector('.seg-no');
+            if (no) no.textContent = String(i + 1).padStart(2, '0');
+            const del = seg.querySelector('.seg-x');
+            if (del) del.style.visibility = all.length > 1 ? 'visible' : 'hidden';
+        });
+
+        const filled = getSegments().length;
+        $('#segMeta').textContent = filled ? `已填 ${filled} / ${MAX_SEGMENTS} 段` : `共 ${all.length} 段`;
+
+        const atLimit = all.length >= MAX_SEGMENTS;
+        $('#btnAddSeg').hidden = atLimit;
+        $('#segLimit').hidden = !atLimit;
+        updateGenerateBtn();
+    }
+
+    function updateSegCount(seg) {
+        if (!seg) return;
+        const ta = seg.querySelector('.seg-text');
+        const len = ta.value.length;
+        const limit = charLimit();
+        const c = seg.querySelector('.seg-count');
+        c.textContent = len + '/' + limit;
+        c.classList.toggle('near', len >= limit * 0.8 && len < limit);
+        c.classList.toggle('full', len >= limit);
+        updateGenerateBtn();
+    }
+
+    function updateGenerateBtn() {
+        $('#btnGenerate').disabled = getSegments().length === 0;
+    }
+
+    function fillSegments(segs) {
+        $('#segments').innerHTML = '';
+        segs.slice(0, MAX_SEGMENTS).forEach(addSegment);
+        if (!$('#segments').querySelector('.seg')) addSegment('');
+        refreshSegUi();
+        $('#scriptArea').scrollTop = 0;
+    }
+
+    function bindSegments() {
+        $('#segments').addEventListener('input', e => {
+            if (!e.target.classList.contains('seg-text')) return;
+            const seg = e.target.closest('.seg');
+            updateSegCount(seg);
+            autoGrow(e.target);
+            refreshSegUi();
+        });
+
+        $('#segments').addEventListener('click', e => {
+            const del = e.target.closest('.seg-x');
+            if (!del) return;
+            del.closest('.seg').remove();
+            if (!$('#segments').querySelector('.seg')) addSegment('');
+            refreshSegUi();
+        });
+
+        $('#btnAddSeg').addEventListener('click', () => {
+            const seg = addSegment('');
+            if (seg) seg.querySelector('.seg-text').focus();
+        });
+
+        // Ctrl/Cmd + Enter 在输入框内由全局快捷键处理
+    }
+
+    /* ============================================================
+       批量导入
+       ============================================================ */
+    async function handleTxtFile(file) {
+        if (!file) return;
+        let segs;
+        try {
+            segs = parseTextFile(file.name, await file.text());
+        } catch (err) {
+            toast(err.message || '导入失败', 'error');
+            return;
+        }
+
+        importedSegments = segs;
+        importedSelection.clear();
+        $('#btnReimport').hidden = false;
+
+        if (segs.length <= MAX_IMPORT) {
+            applyImport(segs);
+        } else {
+            renderImportList();
+            openModal('#importModal');
+        }
+    }
+
+    function reopenImport() {
+        if (!importedSegments.length) return;
+        renderImportList();
+        openModal('#importModal');
+    }
+
+    function applyImport(segs) {
+        fillSegments(segs);
+        toast('已导入 ' + segs.length + ' 段文本');
+    }
+
+    function renderImportList() {
+        $('#importTip').innerHTML = `共 <b>${importedSegments.length}</b> 段，最多选择 <b>${MAX_IMPORT}</b> 段。可按住鼠标拖动连续多选。`;
+        $('#importList').innerHTML = importedSegments.map((s, i) => {
+            const over = s.length > charLimit();
+            return `<div class="irow ${importedSelection.has(i) ? 'selected' : ''}" data-index="${i}">
+                <span class="irow-text" title="${esc(s)}"><em class="irow-no">第${i + 1}段</em>${esc(s.slice(0, 50))}${s.length > 50 ? '…' : ''}</span>
+                ${over ? '<span class="irow-warn">超 ' + charLimit() + ' 字符</span>' : ''}
+                <input type="checkbox" data-i="${i}" aria-label="选择第 ${i + 1} 段" ${importedSelection.has(i) ? 'checked' : ''}>
+            </div>`;
+        }).join('');
+        updateImportConfirm();
+    }
+
+    function setImportChecked(index, checked) {
+        if (checked) {
+            if (importedSelection.size >= MAX_IMPORT || importedSelection.has(index)) return;
+            importedSelection.add(index);
+        } else {
+            importedSelection.delete(index);
+        }
+        const row = $(`#importList .irow[data-index="${index}"]`);
+        if (row) {
+            row.classList.toggle('selected', importedSelection.has(index));
+            const cb = row.querySelector('input');
+            if (cb) cb.checked = importedSelection.has(index);
+        }
+        updateImportConfirm();
+    }
+
+    function updateImportConfirm() {
+        const btn = $('#btnImportConfirm');
+        const n = importedSelection.size;
+        btn.disabled = n === 0;
+        btn.textContent = n > 0 ? `确认导入 (${n})` : '确认导入';
+    }
+
+    function bindImport() {
+        $('#txtFile').addEventListener('change', e => {
+            handleTxtFile(e.target.files[0]);
+            e.target.value = '';
+        });
+        $('#btnImportTxt').addEventListener('click', () => $('#txtFile').click());
+        $('#btnReimport').addEventListener('click', reopenImport);
+
+        $('#importList').addEventListener('change', e => {
+            const cb = e.target.closest('input[type=checkbox]');
+            if (!cb) return;
+            const index = +cb.dataset.i;
+            const want = cb.checked;
+            if (want && importedSelection.size >= MAX_IMPORT && !importedSelection.has(index)) {
+                cb.checked = false;
+                toast(`最多只能选择 ${MAX_IMPORT} 段，请先取消其他段`, 'warn');
+                return;
+            }
+            setImportChecked(index, want);
+        });
+
+        const drag = { active: false, startChecked: false };
+        $('#importList').addEventListener('mousedown', e => {
+            const row = e.target.closest('.irow');
+            if (!row || e.target.closest('input[type=checkbox]')) return;
+            const index = +row.dataset.index;
+            drag.active = true;
+            drag.startChecked = importedSelection.has(index);
+            e.preventDefault();
+            setImportChecked(index, !drag.startChecked);
+        });
+        $('#importList').addEventListener('mouseover', e => {
+            if (!drag.active) return;
+            const row = e.target.closest('.irow');
+            if (!row) return;
+            setImportChecked(+row.dataset.index, !drag.startChecked);
+        });
+        document.addEventListener('mouseup', () => { drag.active = false; });
+
+        $('#btnImportConfirm').addEventListener('click', () => {
+            const indices = [...importedSelection].sort((a, b) => a - b);
+            if (!indices.length) return;
+            closeModal($('#importModal'));
+            applyImport(indices.map(i => importedSegments[i]).filter(t => t !== undefined));
+        });
+    }
+
+    /* ============================================================
+       生成记录
+       ============================================================ */
+    function loadHistory() {
+        try {
+            const arr = JSON.parse(localStorage.getItem(LS.history) || '[]');
+            if (!Array.isArray(arr)) return;
+            arr.forEach(h => {
+                if (!h) return;
+                records.push({
+                    id: uid(),
+                    text: h.fullText || h.text || '',
+                    url: wrapRemoteAudio(h.url || '', audioFileName(h.voice, h.fullText || h.text)),
+                    voice: h.voice || '',
+                    ts: h.ts || 0,
+                    status: h.url ? 'done' : 'error',
+                    picked: false,
+                });
+            });
+            records = records.slice(0, MAX_RECORDS);
+        } catch (_) {}
+    }
+
+    function saveHistory() {
+        const arr = records
+            .filter(r => r.status === 'done')
+            .slice(0, MAX_RECORDS)
+            .map(r => ({
+                text: r.text.slice(0, 12),
+                fullText: r.text,
+                url: r.url,
+                voice: r.voice,
+                ts: r.ts,
+            }));
+        try { localStorage.setItem(LS.history, JSON.stringify(arr)); } catch (_) {}
+    }
+
+    function enforceRecordCap() {
+        while (records.length > MAX_RECORDS) {
+            // 从最旧的一端找一条已经结束的记录删除；生成中的先留着，避免请求回来时丢结果
+            let idx = -1;
+            for (let i = records.length - 1; i >= 0; i--) {
+                if (records[i].status !== 'loading') { idx = i; break; }
+            }
+            if (idx === -1) break;
+            const [old] = records.splice(idx, 1);
+            const el = $('.rec[data-id="' + old.id + '"]');
+            if (el) {
+                if (el._audio) {
+                    try { el._audio.pause(); } catch (_) {}
+                    liveAudio.delete(el._audio);
+                }
+                el.remove();
+            }
+        }
+        saveHistory();
+        renderCount();
+    }
+
+    function renderCount() {
+        const total = records.length;
+        const loading = records.filter(r => r.status === 'loading').length;
+        let text = total + '/' + MAX_RECORDS + '条';
+        if (loading) text += ' · ' + loading + ' 生成中';
+        $('#recCount').textContent = text;
+        $('#recCount').title = `最多保留 ${MAX_RECORDS} 条，超出会删除最旧记录`;
+        $('#emptyState').hidden = total > 0;
+    }
+
+    // 柱状波形几何：values 是每根柱 0~1 的相对高度，收进 [0.14, 1] 避免全平
+    const WAVE_BARS = 72, WAVE_W = 300, WAVE_H = 40;
+    function barsPath(values) {
+        const slot = WAVE_W / WAVE_BARS;
+        const barW = slot * 0.62;
+        const cap = barW / 2;
+        let d = '';
+        for (let i = 0; i < WAVE_BARS; i++) {
+            const h = (0.14 + values[i] * 0.86) * WAVE_H;
+            const x = ((i + 0.5) * slot).toFixed(2);
+            const y1 = (WAVE_H - cap).toFixed(2);
+            const y2 = (WAVE_H - h + cap).toFixed(2);
+            d += `M${x} ${y1}V${y2}`;
+        }
+        return { d, barW: barW.toFixed(2) };
+    }
+
+    // 由记录 id 生成稳定的伪随机波形（真实波形解析失败 / 未就绪时的兜底）
+    function wavePath(id) {
+        let seed = 0;
+        for (let i = 0; i < id.length; i++) seed = (seed * 33 + id.charCodeAt(i)) % 233280;
+        const values = [];
+        for (let i = 0; i < WAVE_BARS; i++) {
+            seed = (seed * 9301 + 49297) % 233280;
+            values.push(seed / 233280);
+        }
+        return barsPath(values);
+    }
+
+    /* ---------- 真实波形：解码音频取峰值，按 URL 缓存，失败回退随机 ---------- */
+
+    const waveCache = new Map();   // url -> values[72]
+    const wavePending = new Set(); // 解码中的 url，避免重复拉取
+    const waveQueue = [];
+    let waveActive = 0;
+    let sharedAudioCtx = null;
+
+    // 启动时可能几十条记录同时渲染，限并发防止一瞬拉满带宽 / 解码器
+    function scheduleWave(job) {
+        const run = j => {
+            waveActive++;
+            j().finally(() => {
+                waveActive--;
+                if (waveQueue.length) run(waveQueue.shift());
+            });
+        };
+        if (waveActive >= 3) waveQueue.push(job); else run(job);
+    }
+
+    async function realWaveValues(url) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 15000);
+        try {
+            const resp = await fetch(url, { signal: ctrl.signal });
+            if (!resp.ok) throw new Error('bad');
+            const buf = await resp.arrayBuffer();
+            if (!sharedAudioCtx) sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const audio = await sharedAudioCtx.decodeAudioData(buf);
+            const ch = audio.getChannelData(0);
+            const step = Math.floor(ch.length / WAVE_BARS) || 1;
+            const peaks = new Array(WAVE_BARS).fill(0);
+            let max = 0;
+            for (let i = 0; i < WAVE_BARS; i++) {
+                const end = Math.min((i + 1) * step, ch.length);
+                for (let j = i * step; j < end; j += 16) { // 峰值检测抽点采样足够
+                    const a = Math.abs(ch[j]);
+                    if (a > peaks[i]) peaks[i] = a;
+                }
+                if (peaks[i] > max) max = peaks[i];
+            }
+            return peaks.map(p => (max ? p / max : 0));
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    function paintWave(el, values) {
+        const d = barsPath(values).d;
+        $$('.wave-base, .wave-played', el).forEach(p => p.setAttribute('d', d));
+    }
+
+    function applyRealWave(el, r) {
+        if (!r.url) return;
+        const cached = waveCache.get(r.url);
+        if (cached) { paintWave(el, cached); return; }
+        if (wavePending.has(r.url)) return;
+        wavePending.add(r.url);
+        scheduleWave(async () => {
+            try {
+                const values = await realWaveValues(r.url);
+                waveCache.set(r.url, values);
+                paintWave(el, values);
+            } catch (_) {
+                // 过期 / 解码失败：保留 recordEl 初始的随机波形，不动
+            } finally {
+                wavePending.delete(r.url);
+            }
+        });
+    }
+
+    const fmtTime = s => {
+        if (!isFinite(s) || isNaN(s) || s < 0) return '0:00';
+        return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+    };
+
+    const fmtStamp = ts => {
+        if (!ts) return '';
+        const d = new Date(ts);
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+    };
+
+    function recordEl(r) {
+        const el = document.createElement('article');
+        el.className = 'rec rec--' + r.status + (r.status === 'done' && r.picked ? ' selected' : '');
+        el.dataset.id = r.id;
+
+        if (r.status === 'loading') {
+            el.innerHTML = `
+                <div class="rec-wait"><span class="spinner"></span><b>生成中…</b></div>
+                <p class="rec-text" title="${esc(r.text)}">${esc(r.text)}</p>`;
+            return el;
+        }
+
+        if (r.status === 'error') {
+            el.innerHTML = `
+                <div class="rec-top">
+                    <span class="voice-tag">${esc(r.voice || '曼波')}</span>
+                    <p class="rec-text" title="${esc(r.text)}">${esc(r.text)}</p>
+                </div>
+                <div class="rec-err">
+                    <svg class="ic" aria-hidden="true"><use href="#i-alert"></use></svg>
+                    <span>${esc(r.error || '生成失败')}</span>
+                </div>
+                <div class="rec-ops">
+                    <span class="rec-time"></span>
+                    <div class="ops">
+                        <button class="mini" type="button" data-retry><svg class="ic" aria-hidden="true"><use href="#i-refresh"></use></svg><span>重试</span></button>
+                        <button class="mini danger" type="button" data-remove><svg class="ic" aria-hidden="true"><use href="#i-trash"></use></svg><span>移除</span></button>
+                    </div>
+                </div>`;
+            return el;
+        }
+
+        const time = fmtStamp(r.ts);
+        const shape = wavePath(r.id);
+        const gradId = 'wg-' + r.id;
+        const clipId = 'wc-' + r.id;
+        el.innerHTML = `
+            <div class="rec-top">
+                <span class="voice-tag">${esc(r.voice || '曼波')}</span>
+                <p class="rec-text" title="${esc(r.text)}">${esc(r.text)}</p>
+                <label class="pick" title="选中以便批量下载（点击整条记录也可切换）">
+                    <input type="checkbox" aria-label="选择这条记录" ${r.picked ? 'checked' : ''}>
+                    <span></span>
+                </label>
+            </div>
+            <div class="player">
+                <button class="play" type="button" title="播放" aria-label="播放">
+                    <svg class="ic ic-play" aria-hidden="true"><use href="#i-play"></use></svg>
+                    <svg class="ic ic-pause" aria-hidden="true"><use href="#i-pause"></use></svg>
+                </button>
+                <div class="wave" role="slider" tabindex="0" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <svg class="wave-svg" viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0" stop-color="#88cfde"/>
+                                <stop offset="1" stop-color="#66a7bd"/>
+                            </linearGradient>
+                            <clipPath id="${clipId}" class="wave-clip"><rect x="0" y="0" width="0" height="40"/></clipPath>
+                        </defs>
+                        <path class="wave-base" d="${shape.d}" stroke-width="${shape.barW}"/>
+                        <g clip-path="url(#${clipId})">
+                            <path class="wave-played" d="${shape.d}" stroke="url(#${gradId})" stroke-width="${shape.barW}"/>
+                        </g>
+                    </svg>
+                    <span class="wave-cursor"></span>
+                </div>
+                <span class="w-time">0:00</span>
+            </div>
+            <div class="rec-ops">
+                <span class="rec-time">${time}</span>
+                <div class="ops">
+                    <button class="mini" type="button" data-dl><svg class="ic" aria-hidden="true"><use href="#i-download"></use></svg><span>下载</span></button>
+                    <button class="mini" type="button" data-copy><svg class="ic" aria-hidden="true"><use href="#i-copy"></use></svg><span>复制链接</span></button>
+                    <button class="mini danger" type="button" data-remove><svg class="ic" aria-hidden="true"><use href="#i-trash"></use></svg><span>删除</span></button>
+                </div>
+            </div>`;
+
+        const audio = new Audio(r.url);
+        audio.preload = 'none';
+        audio.volume = volume;
+        liveAudio.add(audio);
+        el._audio = audio;
+        bindPlayer(el, audio);
+        if (r.status === 'done') applyRealWave(el, r);
+        return el;
+    }
+
+    function stopAllAudio() {
+        previewToken++;
+        liveAudio.forEach(a => { try { a.pause(); } catch (_) {} });
+        if (previewAudio) { try { previewAudio.pause(); } catch (_) {} }
+        if (previewState.btn) setPreviewBtn(previewState.btn, 'idle');
+        previewState = { voice: null, btn: null };
+        $$('.play.is-playing').forEach(b => b.classList.remove('is-playing'));
+        $$('.player.playing').forEach(p => p.classList.remove('playing'));
+    }
+
+    function bindPlayer(el, audio) {
+        const btn = $('.play', el);
+        const player = $('.player', el);
+        const wave = $('.wave', el);
+        const cursor = $('.wave-cursor', el);
+        const time = $('.w-time', el);
+        const clipRect = $('.wave-clip rect', el);
+
+        const paint = () => {
+            const dur = audio.duration;
+            const frac = dur ? Math.min(1, audio.currentTime / dur) : 0;
+            cursor.style.left = (frac * 100) + '%';
+            if (clipRect) clipRect.setAttribute('width', (frac * 300).toFixed(2));
+            time.textContent = dur ? `${fmtTime(audio.currentTime)} / ${fmtTime(dur)}` : fmtTime(audio.currentTime);
+            wave.setAttribute('aria-valuenow', String(Math.round(frac * 100)));
+        };
+
+        btn.addEventListener('click', () => {
+            if (audio.paused) {
+                stopAllAudio();
+                audio.volume = volume;
+                const p = audio.play();
+                if (p && p.catch) p.catch(() => {
+                    btn.classList.remove('is-playing');
+                    player.classList.remove('playing');
+                });
+                btn.classList.add('is-playing');
+                player.classList.add('playing');
+            } else {
+                audio.pause();
+            }
+        });
+
+        audio.addEventListener('timeupdate', paint);
+        audio.addEventListener('loadedmetadata', paint);
+        audio.addEventListener('play', () => {
+            btn.classList.add('is-playing');
+            player.classList.add('playing');
+        });
+        audio.addEventListener('pause', () => {
+            btn.classList.remove('is-playing');
+            player.classList.remove('playing');
+        });
+        audio.addEventListener('ended', () => {
+            btn.classList.remove('is-playing');
+            player.classList.remove('playing');
+            audio.currentTime = 0;
+            paint();
+        });
+
+        const seek = ratio => {
+            if (!audio.duration) { btn.click(); return; }
+            audio.currentTime = Math.max(0, Math.min(1, ratio)) * audio.duration;
+            paint();
+        };
+
+        wave.addEventListener('click', e => {
+            const rect = wave.getBoundingClientRect();
+            seek((e.clientX - rect.left) / rect.width);
+        });
+
+        wave.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (!audio.duration) { btn.click(); return; }
+                const delta = e.key === 'ArrowRight' ? 5 : -5;
+                audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + delta));
+                paint();
+            } else if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                btn.click();
+            }
+        });
+    }
+
+    const findRecord = id => records.find(r => r.id === id);
+
+    function bindRecords() {
+        $('#records').addEventListener('click', async e => {
+            const el = e.target.closest('.rec');
+            if (!el) return;
+            const r = findRecord(el.dataset.id);
+            if (!r) return;
+
+            // 扩大勾选热区：点记录正文/空白处也能切换选中
+            const pick = el.querySelector('.pick input');
+            if (pick && !e.target.closest('button, a, input, label, .player, .rec-ops')) {
+                pick.checked = !pick.checked;
+                el.classList.toggle('selected', pick.checked);
+                return;
+            }
+
+            if (e.target.closest('[data-remove]')) {
+                if (el._audio) {
+                    try { el._audio.pause(); } catch (_) {}
+                    liveAudio.delete(el._audio);
+                }
+                records = records.filter(x => x.id !== r.id);
+                el.remove();
+                saveHistory();
+                renderCount();
+                return;
+            }
+
+            if (e.target.closest('[data-retry]')) {
+                if (el._audio) liveAudio.delete(el._audio);
+                records = records.filter(x => x.id !== r.id);
+                el.remove();
+                renderCount();
+                generateOne(r.voice || currentVoice, r.text);
+                return;
+            }
+
+            if (e.target.closest('[data-copy]')) {
+                const ok = await copyText(r.url);
+                toast(ok ? '链接已复制' : '复制失败，请手动复制', ok ? '' : 'warn');
+                return;
+            }
+
+            if (e.target.closest('[data-dl]')) {
+                downloadAudio(r, el);
+            }
+        });
+
+        $('#records').addEventListener('change', e => {
+            const cb = e.target.closest('.pick input');
+            if (!cb) return;
+            cb.closest('.rec').classList.toggle('selected', cb.checked);
+        });
+    }
+
+    /* ============================================================
+       下载 / 复制
+       ============================================================ */
+    async function copyText(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (_) {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                const ok = document.execCommand('copy');
+                ta.remove();
+                return ok;
+            } catch (_) { return false; }
+        }
+    }
+
+    async function downloadAudio(r, el, dlName) {
+        const btn = el && $('[data-dl]', el);
+        const label = t => { if (btn) $('span', btn).textContent = t; };
+        if (btn) btn.disabled = true;
+        try {
+            // 代理已放开 CORS：流式读取拿 blob，content-length 在时按钮上显示百分比
+            const resp = await fetch(r.url);
+            if (!resp.ok || !resp.body) throw new Error('bad');
+            const total = +resp.headers.get('content-length') || 0;
+            const reader = resp.body.getReader();
+            const chunks = [];
+            let got = 0;
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                got += value.length;
+                label(total ? '下载中 ' + Math.min(99, Math.round(got / total * 100)) + '%' : '下载中');
+            }
+            const blob = new Blob(chunks, { type: resp.headers.get('content-type') || 'audio/mpeg' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = dlName || audioFileName(r.voice, r.text);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+            toast('已开始下载');
+        } catch (_) {
+            // 兜底：流拿不到（旧链接没走代理 / 网络异常）就用隐藏 iframe 借下载头，
+            // 无进度可报，按钮固定「下载中」一段时间
+            label('下载中');
+            const f = document.createElement('iframe');
+            f.style.display = 'none';
+            f.src = r.url;
+            document.body.appendChild(f);
+            setTimeout(() => f.remove(), 60000);
+            toast('已开始下载');
+            await new Promise(res => setTimeout(res, 3000));
+        } finally {
+            if (btn) { btn.disabled = false; label('下载'); }
+        }
+    }
+
+    // 批量下载：文件名统一带短随机后缀 —— 重复下载同名文件时浏览器会自动加
+    // (1)，CSV 就对不上了；随机后缀让每次落盘的名字都是全新的（与桌面版同思路）
+    function uniqueFileName(r, used) {
+        const base = audioFileName(r.voice, r.text).replace(/\.mp3$/, '');
+        let name;
+        do {
+            name = base + '_' + Math.random().toString(36).slice(2, 6) + '.mp3';
+        } while (used.has(name));
+        used.add(name);
+        return name;
+    }
+
+    const csvField = v => {
+        v = String(v ?? '');
+        return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    };
+
+    async function downloadSelected() {
+        const ids = $$('.rec--done .pick input:checked').map(cb => cb.closest('.rec').dataset.id);
+        if (!ids.length) { toast('先勾选要下载的记录', 'warn'); return; }
+        toast('开始下载 ' + ids.length + ' 条…');
+        const used = new Set();
+        const rows = [];
+        for (const id of ids) {
+            const r = findRecord(id);
+            if (!r) continue;
+            const name = uniqueFileName(r, used);
+            await downloadAudio(r, $('.rec[data-id="' + id + '"]'), name);
+            rows.push([r.text, name]);
+            await new Promise(res => setTimeout(res, 400));
+        }
+        if (csvRecord && rows.length) {
+            const csv = '\ufeff文本,文件名\r\n' + rows.map(([t, f]) => csvField(t) + ',' + csvField(f)).join('\r\n') + '\r\n';
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = '记录.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+            toast('已生成 记录.csv（文本+文件名）');
+        }
+    }
+
+    /* ============================================================
+       生成
+       ============================================================ */
+    async function generate() {
+        if (modalStack.length) return;
+        const segs = getSegments();
+        if (!segs.length) return;
+        const over = segs.find(s => s.length > charLimit());
+        if (over) {
+            toast('有段落超过 ' + charLimit() + ' 字，请先拆分', 'warn');
+            return;
+        }
+        segs.forEach(text => generateOne(currentVoice, text));
+    }
+
+    function generateOne(voice, text) {
+        const r = { id: uid(), text, url: '', voice, ts: Date.now(), status: 'loading', picked: true };
+        records.unshift(r);
+        $('#emptyState').hidden = true;
+        $('#records').prepend(recordEl(r));
+        enforceRecordCap();
+
+        requestAudio(buildGenUrl(voice, text)).then(url => {
+            r.url = wrapRemoteAudio(url, audioFileName(voice, text));
+            r.status = 'done';
+            r.ts = r.ts || Date.now();
+            const el = $('.rec[data-id="' + r.id + '"]');
+            if (el) {
+                el.remove();
+                const fresh = recordEl(r);
+                $('#records').prepend(fresh);
+                if (autoPlay) {
+                    stopAllAudio();
+                    const playBtn = $('.play', fresh);
+                    if (playBtn) playBtn.click();
+                }
+            }
+            enforceRecordCap();
+        }).catch(err => {
+            r.status = 'error';
+            r.error = err.message || '网络异常，生成失败';
+            const el = $('.rec[data-id="' + r.id + '"]');
+            if (el) {
+                el.remove();
+                $('#records').prepend(recordEl(r));
+            }
+            enforceRecordCap();
+        });
+    }
+
+    /* ============================================================
+       气泡确认
+       ============================================================ */
+    function hidePops() {
+        $$('.popover.open').forEach(p => p.classList.remove('open'));
+    }
+    window.__hidePops = hidePops;
+
+    function bindControls() {
+        const vol = $('#volume');
+        vol.value = volume;
+
+        const paintVol = () => {
+            vol.style.setProperty('--vol', Math.round(volume * 100) + '%');
+        };
+
+        vol.addEventListener('input', () => {
+            volume = parseFloat(vol.value);
+            try { localStorage.setItem(LS.volume, String(volume)); } catch (_) {}
+            liveAudio.forEach(a => { try { a.volume = volume; } catch (_) {} });
+            if (previewAudio) { try { previewAudio.volume = volume; } catch (_) {} }
+            paintVol();
+        });
+        paintVol();
+
+        const ap = $('#autoPlay');
+        ap.checked = autoPlay;
+        ap.addEventListener('change', () => {
+            autoPlay = ap.checked;
+            try { localStorage.setItem(LS.autoplay, autoPlay ? '1' : '0'); } catch (_) {}
+        });
+
+        const cr = $('#csvRecord');
+        cr.checked = csvRecord;
+        cr.addEventListener('change', () => {
+            csvRecord = cr.checked;
+            try { localStorage.setItem(LS.csvRecord, csvRecord ? '1' : '0'); } catch (_) {}
+        });
+
+        $('#btnDlSelected').addEventListener('click', downloadSelected);
+
+        const recPop = $('#clearPop');
+        $('#btnClearAll').addEventListener('click', e => {
+            e.stopPropagation();
+            const was = recPop.classList.contains('open');
+            hidePops();
+            if (!was) recPop.classList.add('open');
+        });
+        recPop.addEventListener('click', e => e.stopPropagation());
+        $('#clearYes').addEventListener('click', () => {
+            hidePops();
+            stopAllAudio();
+            liveAudio.forEach(a => { try { a.pause(); } catch (_) {} });
+            liveAudio.clear();
+            records = [];
+            saveHistory();
+            $$('.rec').forEach(el => el.remove());
+            renderCount();
+            toast('已清空生成记录');
+        });
+
+        const textPop = $('#clearTextPop');
+        $('#btnClearText').addEventListener('click', e => {
+            e.stopPropagation();
+            const was = textPop.classList.contains('open');
+            hidePops();
+            if (!was) {
+                const filled = getSegments().length;
+                $('#clearTextMsg').textContent = filled ? `清空已填的 ${filled} 段文本？` : '清空全部文本段落？';
+                textPop.classList.add('open');
+            }
+        });
+        textPop.addEventListener('click', e => e.stopPropagation());
+        $('#clearTextYes').addEventListener('click', () => {
+            hidePops();
+            fillSegments([]);
+            toast('已清空台词');
+        });
+
+        $$('[data-pop-close]').forEach(b => b.addEventListener('click', hidePops));
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.pop-anchor')) hidePops();
+        });
+
+        $('#btnVoicePicker').addEventListener('click', () => {
+            renderVoiceGrid('');
+            $('#voiceSearch').value = '';
+            openModal('#voiceModal');
+            setTimeout(() => $('#voiceSearch').focus(), 60);
+        });
+
+        $('#btnGenerate').addEventListener('click', generate);
+        $('#btnHelp').addEventListener('click', () => openModal('#helpModal'));
+
+        // 关闭角色面板时停止试听
+        $('#voiceModal').addEventListener('transitionend', () => {
+            if (!$('#voiceModal').classList.contains('open')) stopAllAudio();
+        });
+    }
+
+    /* ============================================================
+       主题
+       ============================================================ */
+    function applyTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+        localStorage.setItem(LS.theme, theme);
+        const meta = $('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'light' ? '#eef5f7' : '#080e12');
+        const btn = $('#btnTheme');
+        btn.setAttribute('aria-label', theme === 'dark' ? '切换到浅色主题' : '切换到深色主题');
+        btn.title = theme === 'dark' ? '切换到浅色主题' : '切换到深色主题';
+    }
+
+    let themeAnimating = false;
+
+    function bindTheme() {
+        applyTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+
+        $('#btnTheme').addEventListener('click', () => {
+            if (themeAnimating) return;
+
+            const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+            const reduceMotion = window.matchMedia
+                && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const btn = $('#btnTheme');
+            const rect = btn.getBoundingClientRect();
+
+            if (!document.startViewTransition || !rect || reduceMotion) {
+                applyTheme(next);
+                return;
+            }
+
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            const radius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+
+            themeAnimating = true;
+            try {
+                document.startViewTransition(() => applyTheme(next))
+                    .ready.then(() => {
+                        document.documentElement.animate(
+                            {
+                                clipPath: [
+                                    `circle(0px at ${x}px ${y}px)`,
+                                    `circle(${radius}px at ${x}px ${y}px)`,
+                                ],
+                            },
+                            {
+                                duration: 460,
+                                easing: 'ease-out',
+                                pseudoElement: '::view-transition-new(root)',
+                            }
+                        );
+                    })
+                    .catch(() => {});
+            } catch (_) {
+                applyTheme(next);
+            }
+            setTimeout(() => { themeAnimating = false; }, 520);
+        });
+    }
+
+    /* ============================================================
+       公告
+       ============================================================ */
+    const ANNOUNCEMENT_CONFIG = {
+        version: '21',
+        content: `
+            <p>后续将集中维护网页版，桌面版（Win 端）将<strong>停止维护</strong>，不再提供下载与更新；已下载的用户仍可继续使用，但建议改用网页版，Mac 端、移动端都能直接使用。</p>
+            <div class="announce-links">
+                <a href="https://space.bilibili.com/192702710" target="_blank" rel="noopener">哔哩哔哩主页</a>
+                <a href="https://contact.dayun.cool" target="_blank" rel="noopener">问题反馈</a>
+                <a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">VKit 站点</a>
+            </div>
+            <div class="announce-highlight">
+                <span class="announce-label">近期更新公告</span>
+                <p>🎉 网页版持续更新：支持 100+ 热门角色配音、多段落批量生成、多格式文本导入！</p>
+            </div>
+            <p>为确保服务稳定，「曼波」目前每天免费使用 50 次，超出将报错，这是源 API 站的限制；如需使用付费版请 <a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">前往 VKit</a>。</p>
+            <p>生成音频的链接通过 VKit 服务器代理分发，之前个别用户连不上源 API 站导致的加载慢 / 失败问题不会再出现（但是源 API 站如果异常依旧无解）。</p>
+        `,
+    };
+
+    function openAnnouncement() {
+        $('#announceText').innerHTML = ANNOUNCEMENT_CONFIG.content;
+        openModal('#announceModal');
+    }
+
+    function checkAnnouncement() {
+        let data = null;
+        try { data = JSON.parse(localStorage.getItem(LS.announce) || 'null'); } catch (_) {}
+        if (!data || data.version !== ANNOUNCEMENT_CONFIG.version || !data.dontShow) {
+            openAnnouncement();
+        }
+    }
+
+    function setAnnounceData(dontShow) {
+        try {
+            localStorage.setItem(LS.announce, JSON.stringify({
+                version: ANNOUNCEMENT_CONFIG.version,
+                dontShow: !!dontShow,
+            }));
+        } catch (_) {}
+    }
+
+    function bindAnnounce() {
+        $('#announceMute').addEventListener('click', () => closeAnnounce(true));
+        $('#btnAnnounce').addEventListener('click', openAnnouncement);
+    }
+
+    /* ============================================================
+       启动
+       ============================================================ */
+    function initShortcutLabel() {
+        const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+        $('#genKbd').textContent = isMac ? '⌘ ↵' : 'Ctrl ↵';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        bindTheme();
+        bindSegments();
+        bindImport();
+        bindVoiceGrid();
+        bindRecords();
+        bindControls();
+        bindAnnounce();
+        initShortcutLabel();
+
+        addSegment('');
+        renderCurrentVoice();
+
+        loadHistory();
+        records.forEach(r => $('#records').appendChild(recordEl(r)));
+        saveHistory();
+        renderCount();
+
+        checkAnnouncement();
+        fetchList();
+    });
+})();
+</script>
+</body>
+</html>

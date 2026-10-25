@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200, initial-scale=1.0">
+    <link rel="icon" href="assets/hang.png">
+    <title>从夯到拉排行榜</title>
+    <link rel="stylesheet" href="./src/ranking.css">
+</head>
+<body>
+    <button class="help-btn" onclick="showHelp()">?</button>
+    
+    <div class="help-modal" id="help-modal">
+        <div class="help-content">
+            <button class="close-help" onclick="hideHelp()">×</button>
+            <h2>📝 使用说明</h2>
+            <ul>
+                <li>添加图片：点击"+"按钮或拖拽图片到该按钮区域</li>
+                <li>删除图片：将图片拖拽到"-"区域删除</li>
+                <li>放大图片：点击图片可放大，再次点击任意区域恢复</li>
+                <li>编辑评级：点击评级名称可编辑文字</li>
+                <li>编辑颜色：点击评级名称后右侧颜色按钮可编辑颜色</li>
+                <li>删除评级：点击评级名称后右侧删除按钮可删除评级</li>
+                <li>创建新评级：点击底部"+添加评级"按钮创建新的评级</li>
+            </ul>
+            <div class="toggle-container" style="display: flex; gap: 20px; justify-content: center;">
+                <label>
+                    <input type="checkbox" id="show-image-names-toggle">
+                    <span class="toggle-label">显示图片名称</span>
+                </label>
+                <label>
+                    <input type="checkbox" id="fixed-height-toggle">
+                    <span class="toggle-label">固定评级高度</span>
+                </label>
+            </div>
+            <div class="save-image-container">
+                <button class="save-image-btn" onclick="saveAsImage()">💾 保存为图片</button>
+            </div>
+            <div class="manbo-link">
+                <p><a href="manbo" style="margin-right: 30px;" target="_blank">🎵 前往曼波配音生成器</a><a href="/">🏠 回到主站</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="ranking-container">
+            <div class="tier" data-tier="s">
+                <div class="tier-label" style="background-color: #e74d5a;">
+                    <input type="color" class="color-picker" value="#ff4757" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">夯</span>
+                </div>
+                <div class="tier-content"></div>
+            </div>
+            <div class="tier" data-tier="a">
+                <div class="tier-label" style="background-color: #ff9f43;">
+                    <input type="color" class="color-picker" value="#ff9f43" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">顶级</span>
+                </div>
+                <div class="tier-content"></div>
+            </div>
+            <div class="tier" data-tier="b">
+                <div class="tier-label" style="background-color: #5a61e7;">
+                    <input type="color" class="color-picker" value="#3742fa" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">人上人</span>
+                </div>
+                <div class="tier-content"></div>
+            </div>
+            <div class="tier" data-tier="c">
+                <div class="tier-label" style="background-color: #2ed573;">
+                    <input type="color" class="color-picker" value="#2ed573" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">NPC</span>
+                </div>
+                <div class="tier-content"></div>
+            </div>
+            <div class="tier" data-tier="d">
+                <div class="tier-label" style="background-color: #747d8c;">
+                    <input type="color" class="color-picker" value="#747d8c" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">拉完了</span>
+                </div>
+                <div class="tier-content"></div>
+            </div>
+        </div>
+        
+        <div class="image-gallery" id="image-gallery">
+             <div class="upload-btn" onclick="document.getElementById('file-input').click()">+</div>
+             <div class="delete-zone" id="delete-zone">-</div>
+             <div class="button-container">
+                 <div class="add-tier-btn" onclick="addNewTier()">+ 添加评级</div>
+                 <div class="reset-tier-btn" onclick="resetRanking()">↻ 重置排行榜</div>
+             </div>
+         </div>
+         
+            
+        <input type="file" id="file-input" accept="image/*" multiple>
+    </div>
+
+    <!-- 重置确认模态框 -->
+    <div class="reset-modal" id="reset-modal">
+        <div class="reset-content">
+            <h3>⚠️ 确认重置</h3>
+            <p>您确定要重置排行榜吗？<br>这将清除所有评级设置并移除所有图片，此操作无法撤销。</p>
+            <div class="reset-buttons">
+                <button class="reset-confirm-btn" onclick="confirmReset()">确认重置</button>
+                <button class="reset-cancel-btn" onclick="cancelReset()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片放大模态框 -->
+    <div class="image-modal" id="image-modal" onclick="hideImageModal()">
+        <img src="" alt="放大的图片">
+    </div>
+
+    <script>
+        let draggedElement = null;
+        let imageCounter = 0;
+        let showImageNamesSetting = false; // 仅使用 IndexedDB 管理该状态
+        let fixedHeightSetting = false; // 固定高度设置
+
+        // 文件上传处理
+        const fileInput = document.getElementById('file-input');
+        const uploadBtn = document.querySelector('.upload-btn');
+        const deleteZone = document.getElementById('delete-zone');
+        const imageGallery = document.getElementById('image-gallery');
+
+        fileInput.addEventListener('change', handleFiles);
+
+        // 拖拽上传到上传按钮
+        uploadBtn.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBtn.classList.add('drag-over');
+        });
+
+        uploadBtn.addEventListener('dragleave', () => {
+            uploadBtn.classList.remove('drag-over');
+        });
+
+        uploadBtn.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBtn.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            handleFiles({ target: { files } });
+        });
+
+        // 删除区域拖拽处理
+        deleteZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            deleteZone.classList.add('drag-over');
+        });
+
+        deleteZone.addEventListener('dragleave', () => {
+            deleteZone.classList.remove('drag-over');
+        });
+
+        deleteZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            deleteZone.classList.remove('drag-over');
+            if (draggedElement) {
+                draggedElement.remove();
+                draggedElement = null;
+            }
+        });
+
+        function handleFiles(e) {
+            const files = Array.from(e.target.files);
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        // 压缩图片
+                        const compressedImage = await compressImage(e.target.result);
+                        createImageItem(compressedImage, file.name);
+                        // 保存状态
+                        saveState();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        // 在删除图片时也触发状态保存
+        function handleImageDelete(imageElement) {
+            imageElement.remove();
+            saveState(); // 确保删除后更新存储
+        }
+
+        // 修改删除区域的处理逻辑
+        deleteZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            deleteZone.classList.remove('drag-over');
+            if (draggedElement) {
+                handleImageDelete(draggedElement);
+                draggedElement = null;
+            }
+        });
+
+        function createImageItem(src, filename = '') {
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            imageItem.dataset.id = 'img-' + (++imageCounter);
+            
+            // 提取文件名（如果src是base64，则使用默认名称）
+            let displayName = filename;
+            if (!displayName && src.startsWith('data:')) {
+                displayName = '图片';
+            } else if (!displayName) {
+                // 从URL中提取文件名
+                const urlParts = src.split('/');
+                displayName = urlParts[urlParts.length - 1] || '图片';
+            }
+            
+            // 去掉文件后缀名
+            if (displayName && displayName !== '图片') {
+                const lastDotIndex = displayName.lastIndexOf('.');
+                if (lastDotIndex > 0) {
+                    displayName = displayName.substring(0, lastDotIndex);
+                }
+            }
+            
+            imageItem.innerHTML = `
+                <img src="${src}" alt="上传的图片">
+                <div class="image-name-overlay">${displayName}</div>
+            `;
+            
+            // 应用当前的图片名称显示设置（来自内存变量）
+            const nameOverlay = imageItem.querySelector('.image-name-overlay');
+            nameOverlay.style.display = showImageNamesSetting ? 'block' : 'none';
+            
+            // 添加鼠标和触摸事件
+            imageItem.addEventListener('mousedown', handleMouseDown);
+            imageItem.addEventListener('touchstart', handleTouchStart, { passive: false });
+            imageItem.addEventListener('dragstart', handleDragStart);
+            imageItem.addEventListener('dragend', handleDragEnd);
+            
+            // 插入到上传按钮前面
+            imageGallery.insertBefore(imageItem, uploadBtn);
+        }
+
+        // 自定义拖拽预览
+        let dragPreview = null;
+        let isDragging = false;
+
+        // 拖拽功能
+        function handleDragStart(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // 自定义拖拽实现
+        let isMouseDown = false;
+        let isTouchStart = false;
+        let startX, startY;
+        let clickTimeout = null;
+
+        function handleMouseDown(e) {
+            if (e.button !== 0) return; // 只处理左键
+
+            isMouseDown = true;
+            draggedElement = this;
+            startX = e.clientX;
+            startY = e.clientY;
+
+            // 设置延迟，用于区分点击和拖拽
+            clickTimeout = setTimeout(() => {
+                if (isMouseDown) {
+                    this.style.opacity = '0.3';
+                }
+            }, 150);
+
+            e.preventDefault();
+        }
+
+        // 触摸事件处理
+        function handleTouchStart(e) {
+            if (e.touches.length !== 1) return; // 只处理单指触摸
+
+            const touch = e.touches[0];
+            isTouchStart = true;
+            draggedElement = this;
+            startX = touch.clientX;
+            startY = touch.clientY;
+
+            // 设置延迟，用于区分点击和拖拽
+            clickTimeout = setTimeout(() => {
+                if (isTouchStart) {
+                    this.style.opacity = '0.3';
+                }
+            }, 150);
+
+            e.preventDefault();
+        }
+
+        function handleMouseMove(e) {
+            if (!isMouseDown || !draggedElement) return;
+
+            const deltaX = Math.abs(e.clientX - startX);
+            const deltaY = Math.abs(e.clientY - startY);
+
+            // 开始拖拽的阈值
+            if (deltaX > 5 || deltaY > 5) {
+                if (!isDragging) {
+                    isDragging = true;
+                    createDragPreview(draggedElement);
+                }
+
+                if (dragPreview) {
+                    dragPreview.style.display = 'block';
+                    dragPreview.style.left = (e.clientX - 60) + 'px';
+                    dragPreview.style.top = (e.clientY - 60) + 'px';
+                }
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (!isTouchStart || !draggedElement) return;
+
+            const touch = e.touches[0];
+            const deltaX = Math.abs(touch.clientX - startX);
+            const deltaY = Math.abs(touch.clientY - startY);
+
+            // 开始拖拽的阈值
+            if (deltaX > 5 || deltaY > 5) {
+                if (!isDragging) {
+                    isDragging = true;
+                    createDragPreview(draggedElement);
+                }
+
+                if (dragPreview) {
+                    dragPreview.style.display = 'block';
+                    dragPreview.style.left = (touch.clientX - 60) + 'px';
+                    dragPreview.style.top = (touch.clientY - 60) + 'px';
+                }
+            }
+
+            e.preventDefault();
+        }
+
+        function handleMouseUp(e) {
+            if (!isMouseDown) return;
+
+            // 清除点击延迟
+            if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+            }
+
+            const wasDragging = isDragging;
+            isMouseDown = false;
+
+            if (wasDragging) {
+                // 检查放置目标
+                const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+                const tier = elementBelow?.closest('.tier');
+                const deleteZone = elementBelow?.closest('.delete-zone');
+                const imageGallery = elementBelow?.closest('.image-gallery');
+
+                if (deleteZone) {
+                    draggedElement.remove();
+                } else if (tier) {
+                    const tierContent = tier.querySelector('.tier-content');
+                    
+                    // 确定插入位置
+                    const imageBelow = elementBelow?.closest('.image-item');
+                    if (imageBelow === draggedElement) {
+                        // 拖拽回原位，不做任何处理
+                    } else if (imageBelow && imageBelow.parentElement === tierContent) {
+                        const rect = imageBelow.getBoundingClientRect();
+                        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                        if (isAfter) {
+                            if (imageBelow.nextSibling) {
+                                tierContent.insertBefore(draggedElement, imageBelow.nextSibling);
+                            } else {
+                                tierContent.appendChild(draggedElement);
+                            }
+                        } else {
+                            tierContent.insertBefore(draggedElement, imageBelow);
+                        }
+                    } else {
+                        tierContent.appendChild(draggedElement);
+                    }
+                    
+                    // 如果启用了固定高度，调整图片大小
+                    if (fixedHeightSetting) {
+                        // 重置拖拽图片的样式
+                        draggedElement.classList.remove('single-row', 'multi-row', 'adaptive');
+                        draggedElement.style.width = '';
+                        draggedElement.style.height = '';
+                        adjustImageSizes(tier);
+                    }
+                } else if (imageGallery && !deleteZone) {
+                    // 确定在图片库中的插入位置
+                    const imageBelow = elementBelow?.closest('.image-item');
+                    if (imageBelow === draggedElement) {
+                        // 拖拽回原位，不做任何处理
+                    } else if (imageBelow && imageBelow.parentElement === imageGallery) {
+                        const rect = imageBelow.getBoundingClientRect();
+                        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                        if (isAfter) {
+                            if (imageBelow.nextSibling && imageBelow.nextSibling !== imageGallery.querySelector('.upload-btn')) {
+                                imageGallery.insertBefore(draggedElement, imageBelow.nextSibling);
+                            } else {
+                                imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                            }
+                        } else {
+                            imageGallery.insertBefore(draggedElement, imageBelow);
+                        }
+                    } else {
+                        imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                    }
+                }
+            } else {
+                // 如果没有拖拽，则是点击事件，显示放大图片
+                const deltaX = Math.abs(e.clientX - startX);
+                const deltaY = Math.abs(e.clientY - startY);
+
+                if (deltaX < 5 && deltaY < 5 && draggedElement) {
+                    const img = draggedElement.querySelector('img');
+                    if (img) {
+                        showImageModal(img.src);
+                    }
+                }
+            }
+
+            // 清理
+            if (draggedElement) {
+                draggedElement.style.opacity = '1';
+            }
+
+            if (dragPreview) {
+                dragPreview.remove();
+                dragPreview = null;
+            }
+
+            isDragging = false;
+            draggedElement = null;
+            
+            // 拖拽完成后重新计算所有评级的大小
+            if (fixedHeightSetting) {
+                setTimeout(() => {
+                    recalculateAllTierSizes();
+                }, 50);
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!isTouchStart) return;
+
+            // 清除点击延迟
+            if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+            }
+
+            const wasDragging = isDragging;
+            isTouchStart = false;
+
+            if (wasDragging) {
+                // 检查放置目标
+                const touch = e.changedTouches[0];
+                const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                const tier = elementBelow?.closest('.tier');
+                const deleteZone = elementBelow?.closest('.delete-zone');
+                const imageGallery = elementBelow?.closest('.image-gallery');
+
+                if (deleteZone) {
+                    draggedElement.remove();
+                } else if (tier) {
+                    const tierContent = tier.querySelector('.tier-content');
+                    
+                    // 确定插入位置
+                    const imageBelow = elementBelow?.closest('.image-item');
+                    if (imageBelow === draggedElement) {
+                        // 拖拽回原位，不做任何处理
+                    } else if (imageBelow && imageBelow.parentElement === tierContent) {
+                        const rect = imageBelow.getBoundingClientRect();
+                        const isAfter = (touch.clientX - rect.left) > (rect.width / 2);
+                        if (isAfter) {
+                            if (imageBelow.nextSibling) {
+                                tierContent.insertBefore(draggedElement, imageBelow.nextSibling);
+                            } else {
+                                tierContent.appendChild(draggedElement);
+                            }
+                        } else {
+                            tierContent.insertBefore(draggedElement, imageBelow);
+                        }
+                    } else {
+                        tierContent.appendChild(draggedElement);
+                    }
+                    
+                    // 如果启用了固定高度，调整图片大小
+                    if (fixedHeightSetting) {
+                        // 重置拖拽图片的样式
+                        draggedElement.classList.remove('single-row', 'multi-row', 'adaptive');
+                        draggedElement.style.width = '';
+                        draggedElement.style.height = '';
+                        adjustImageSizes(tier);
+                    }
+                } else if (imageGallery && !deleteZone) {
+                    // 确定在图片库中的插入位置
+                    const imageBelow = elementBelow?.closest('.image-item');
+                    if (imageBelow === draggedElement) {
+                        // 拖拽回原位，不做任何处理
+                    } else if (imageBelow && imageBelow.parentElement === imageGallery) {
+                        const rect = imageBelow.getBoundingClientRect();
+                        const isAfter = (touch.clientX - rect.left) > (rect.width / 2);
+                        if (isAfter) {
+                            if (imageBelow.nextSibling && imageBelow.nextSibling !== imageGallery.querySelector('.upload-btn')) {
+                                imageGallery.insertBefore(draggedElement, imageBelow.nextSibling);
+                            } else {
+                                imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                            }
+                        } else {
+                            imageGallery.insertBefore(draggedElement, imageBelow);
+                        }
+                    } else {
+                        imageGallery.insertBefore(draggedElement, imageGallery.querySelector('.upload-btn'));
+                    }
+                }
+            } else {
+                // 如果没有拖拽，则是触摸事件，显示放大图片
+                const touch = e.changedTouches[0];
+                const deltaX = Math.abs(touch.clientX - startX);
+                const deltaY = Math.abs(touch.clientY - startY);
+
+                if (deltaX < 5 && deltaY < 5 && draggedElement) {
+                    const img = draggedElement.querySelector('img');
+                    if (img) {
+                        showImageModal(img.src);
+                    }
+                }
+            }
+
+            // 清理
+            if (draggedElement) {
+                draggedElement.style.opacity = '1';
+            }
+
+            if (dragPreview) {
+                dragPreview.remove();
+                dragPreview = null;
+            }
+
+            isDragging = false;
+            draggedElement = null;
+            
+            // 拖拽完成后重新计算所有评级的大小
+            if (fixedHeightSetting) {
+                setTimeout(() => {
+                    recalculateAllTierSizes();
+                }, 50);
+            }
+        }
+
+        function createDragPreview(element) {
+            if (dragPreview) {
+                dragPreview.remove();
+            }
+            
+            dragPreview = document.createElement('div');
+            dragPreview.className = 'drag-preview';
+            dragPreview.innerHTML = element.innerHTML;
+            document.body.appendChild(dragPreview);
+        }
+
+        // 绑定鼠标事件
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+        document.addEventListener('touchend', handleTouchEnd);
+
+        // 为tier添加视觉反馈
+        document.querySelectorAll('.tier').forEach(tier => {
+            tier.addEventListener('mouseenter', function(e) {
+                if (isDragging) {
+                    this.classList.add('drag-over');
+                }
+            });
+            tier.addEventListener('mouseleave', function(e) {
+                this.classList.remove('drag-over');
+            });
+        });
+
+        // 为删除区域添加视觉反馈
+        deleteZone.addEventListener('mouseenter', function(e) {
+            if (isDragging) {
+                this.classList.add('drag-over');
+            }
+        });
+        deleteZone.addEventListener('mouseleave', function(e) {
+            this.classList.remove('drag-over');
+        });
+
+
+
+        // 为tier内的图片添加鼠标和触摸事件（动态添加）
+        document.addEventListener('mousedown', function(e) {
+            if (e.target.closest('.image-item')) {
+                handleMouseDown.call(e.target.closest('.image-item'), e);
+            }
+        });
+
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.closest('.image-item')) {
+                handleTouchStart.call(e.target.closest('.image-item'), e);
+            }
+        }, { passive: false });
+
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.closest('.image-item')) {
+                handleDragStart.call(e.target.closest('.image-item'), e);
+            }
+        });
+
+        document.addEventListener('dragend', function(e) {
+            if (e.target.closest('.image-item')) {
+                handleDragEnd.call(e.target.closest('.image-item'), e);
+            }
+        });
+
+        // 阻止页面默认的拖拽行为
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+        });
+
+        // 阻止图片的默认拖拽
+        document.addEventListener('selectstart', (e) => {
+            if (e.target && e.target.closest && e.target.closest('.image-item')) {
+                e.preventDefault();
+            }
+        });
+
+
+
+        // 评级标签点击事件
+        document.addEventListener('click', function(e) {
+            // 如果点击的是删除按钮或颜色选择器，不处理编辑状态
+            if (e.target.classList.contains('delete-tier-btn') || e.target.classList.contains('color-picker')) {
+                return;
+            }
+            
+            // 如果点击的是tier-label或tier-name
+            const tierLabel = e.target.closest('.tier-label');
+            if (tierLabel || e.target.classList.contains('tier-name')) {
+                // 移除其他标签的编辑状态
+                document.querySelectorAll('.tier-label').forEach(label => {
+                    label.classList.remove('editing');
+                });
+                // 添加当前标签的编辑状态
+                if (tierLabel) {
+                    tierLabel.classList.add('editing');
+                    // 如果点击的是tier-label但不是tier-name，聚焦到tier-name
+                    if (!e.target.classList.contains('tier-name')) {
+                        const tierName = tierLabel.querySelector('.tier-name');
+                        if (tierName) {
+                            tierName.focus();
+                        }
+                    }
+                }
+            }
+        });
+
+        // 点击其他地方时移除编辑状态
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.tier-label') || e.target.classList.contains('delete-tier-btn')) {
+                document.querySelectorAll('.tier-label').forEach(label => {
+                    label.classList.remove('editing');
+                });
+            }
+        });
+
+        // 颜色选择器事件
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('color-picker')) {
+                const tierLabel = e.target.closest('.tier-label');
+                const newColor = e.target.value;
+
+                // 更新评级背景颜色
+                tierLabel.style.backgroundColor = newColor;
+
+                // 更新颜色选择器的值，确保它与评级颜色一致
+                e.target.value = newColor;
+
+                // 保存状态
+                saveState();
+            }
+        });
+
+        // 在颜色选择器显示时确保显示正确颜色
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('color-picker')) {
+                const tierLabel = e.target.closest('.tier-label');
+                if (tierLabel && tierLabel.style.backgroundColor) {
+                    const bgColor = tierLabel.style.backgroundColor;
+                    const hexColor = bgColor.startsWith('#') ? bgColor : rgbToHex(bgColor);
+                    e.target.value = hexColor;
+                }
+            }
+        });
+          
+        // 页面加载时确保所有颜色选择器显示正确的颜色
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置所有颜色选择器的值与其父级评级颜色一致
+            document.querySelectorAll('.color-picker').forEach(picker => {
+                const tierLabel = picker.closest('.tier-label');
+                if (tierLabel && tierLabel.style.backgroundColor) {
+                    const bgColor = tierLabel.style.backgroundColor;
+                    const hexColor = bgColor.startsWith('#') ? bgColor : rgbToHex(bgColor);
+                    picker.value = hexColor;
+                }
+            });
+        });
+
+        // 添加新评级函数
+        function addNewTier() {
+            const rankingContainer = document.querySelector('.ranking-container');
+            const tierCount = document.querySelectorAll('.tier').length + 1;
+            const randomColor = '#808080';
+            
+            const newTier = document.createElement('div');
+            newTier.className = 'tier';
+            newTier.dataset.tier = 'new' + tierCount;
+            
+            newTier.innerHTML = `
+                <div class="tier-label" style="background-color: ${randomColor};">
+                    <input type="color" class="color-picker" value="${randomColor}" title="编辑颜色">
+                    <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                    <span class="tier-name" contenteditable="true">新评级${tierCount}</span>
+                </div>
+                <div class="tier-content"></div>
+            `;
+            
+            // 为新tier添加视觉反馈
+            newTier.addEventListener('mouseenter', function(e) {
+                if (isDragging) {
+                    this.classList.add('drag-over');
+                }
+            });
+            newTier.addEventListener('mouseleave', function(e) {
+                this.classList.remove('drag-over');
+            });
+            
+            rankingContainer.appendChild(newTier);
+            
+            // 如果启用了固定高度，应用样式
+            if (fixedHeightSetting) {
+                newTier.classList.add('fixed-height');
+            }
+            
+            // 添加新评级后保存状态
+            saveState();
+        }
+
+        // 删除评级函数
+        function deleteTier(btn) {
+            const tier = btn.closest('.tier');
+            const tierContent = tier.querySelector('.tier-content');
+            
+            // 将该评级中的图片移回图片库
+            const images = tierContent.querySelectorAll('.image-item');
+            images.forEach(img => {
+                imageGallery.insertBefore(img, uploadBtn);
+            });
+            
+            // 删除评级
+            tier.remove();
+            
+            // 删除评级后保存状态
+            saveState();
+        }
+
+        // 帮助弹窗函数
+        function showHelp() {
+            document.getElementById('help-modal').style.display = 'flex';
+            // 恢复开关状态（仅从内存变量）
+            document.getElementById('show-image-names-toggle').checked = !!showImageNamesSetting;
+            document.getElementById('fixed-height-toggle').checked = !!fixedHeightSetting;
+        }
+
+        function hideHelp() {
+            document.getElementById('help-modal').style.display = 'none';
+            // 保存开关状态（内存+IndexedDB）
+            showImageNamesSetting = document.getElementById('show-image-names-toggle').checked;
+            updateImageNamesVisibility(showImageNamesSetting);
+            
+            // 处理固定高度设置
+            const fixedHeightCheckbox = document.getElementById('fixed-height-toggle');
+            if (fixedHeightCheckbox) {
+                const newFixedHeightSetting = fixedHeightCheckbox.checked;
+                if (newFixedHeightSetting !== fixedHeightSetting) {
+                    fixedHeightSetting = newFixedHeightSetting;
+                    toggleFixedHeight();
+                }
+            }
+            
+            // 统一通过 saveState 持久化完整状态
+            try { saveState(); } catch (e) { console.error('保存状态失败:', e); }
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('help-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideHelp();
+            }
+        });
+
+        // 固定高度切换功能
+        function toggleFixedHeight() {
+            const checkbox = document.getElementById('fixed-height-toggle');
+            fixedHeightSetting = checkbox.checked;
+            
+            // 应用或移除固定高度样式
+            document.querySelectorAll('.tier').forEach(tier => {
+                if (fixedHeightSetting) {
+                    tier.classList.add('fixed-height');
+                    adjustImageSizes(tier);
+                } else {
+                    tier.classList.remove('fixed-height');
+                    // 恢复原始图片大小
+                    const images = tier.querySelectorAll('.image-item');
+                    images.forEach(img => {
+                        img.classList.remove('single-row', 'multi-row', 'adaptive');
+                        img.style.width = '120px';
+                        img.style.height = '120px';
+                    });
+                    // 重置滚动样式
+                    const tierContent = tier.querySelector('.tier-content');
+                    tierContent.style.overflowY = '';
+                }
+            });
+            
+            // 保存状态
+            saveState();
+        }
+
+        // 重新计算所有评级的大小
+        function recalculateAllTierSizes() {
+            if (!fixedHeightSetting) return;
+            
+            document.querySelectorAll('.tier').forEach(tier => {
+                adjustImageSizes(tier);
+            });
+        }
+
+        // 根据图片数量动态调整图片大小
+        function adjustImageSizes(tier) {
+            if (!fixedHeightSetting) return;
+            
+            const tierContent = tier.querySelector('.tier-content');
+            const images = tierContent.querySelectorAll('.image-item');
+            
+            if (images.length === 0) return;
+            
+            const containerWidth = tierContent.clientWidth - 10; // 减去padding
+            const gap = 5; // 图片间距
+            
+            // 计算一行能放多少个120px的图片
+            const maxImagesPerRow120 = Math.floor(containerWidth / (120 + gap));
+            
+            if (images.length <= maxImagesPerRow120) {
+                // 单行显示，使用120px，不需要滚动
+                images.forEach(img => {
+                    img.classList.remove('multi-row', 'adaptive');
+                    img.classList.add('single-row');
+                });
+                tierContent.style.overflowY = 'hidden';
+            } else {
+                // 需要自适应缩小
+                // 计算每个图片应该的宽度
+                const availableWidth = containerWidth - (images.length - 1) * gap;
+                const calculatedWidth = Math.floor(availableWidth / images.length);
+                
+                if (calculatedWidth >= 70) {
+                    // 可以在一行内显示，使用自适应尺寸
+                    images.forEach(img => {
+                        img.classList.remove('single-row', 'multi-row');
+                        img.classList.add('adaptive');
+                        img.style.width = calculatedWidth + 'px';
+                        img.style.height = calculatedWidth + 'px';
+                    });
+                    tierContent.style.overflowY = 'hidden';
+                } else {
+                    // 需要换行显示，使用70px
+                    images.forEach(img => {
+                        img.classList.remove('single-row', 'adaptive');
+                        img.classList.add('multi-row');
+                        img.style.width = '70px';
+                        img.style.height = '70px';
+                    });
+                    tierContent.style.overflowY = 'auto';
+                }
+            }
+        }
+
+        // 更新图片名称显示状态
+        function updateImageNamesVisibility(show) {
+            const imageNameOverlays = document.querySelectorAll('.image-name-overlay');
+            imageNameOverlays.forEach(overlay => {
+                overlay.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        // 图片放大功能
+        function showImageModal(src) {
+            const modal = document.getElementById('image-modal');
+            const modalImg = modal.querySelector('img');
+            modalImg.src = src;
+            modal.style.display = 'flex';
+        }
+
+        function hideImageModal() {
+            const modal = document.getElementById('image-modal');
+            modal.style.display = 'none';
+        }
+
+        // 保存为图片功能
+        // html2canvas 只在「保存为图片」时按需加载：它 194KB，放在 head 里会阻塞整页渲染
+        function loadHtml2Canvas() {
+            if (window.html2canvas) return Promise.resolve(window.html2canvas);
+            if (!window.__h2cLoading) {
+                window.__h2cLoading = new Promise(function (resolve, reject) {
+                    var s = document.createElement('script');
+                    s.src = '/vendor/html2canvas-1.4.1.min.js';
+                    s.onload = function () {
+                        window.html2canvas ? resolve(window.html2canvas) : reject(new Error('html2canvas 加载后未生效'));
+                    };
+                    s.onerror = function () {
+                        window.__h2cLoading = null;  // 允许下次重试
+                        reject(new Error('html2canvas 加载失败，请检查网络'));
+                    };
+                    document.head.appendChild(s);
+                });
+            }
+            return window.__h2cLoading;
+        }
+
+        function saveAsImage() {
+            // 隐藏帮助模态框
+            hideHelp();
+            
+            // html2canvas 按需加载，加载好再截图
+            loadHtml2Canvas().then(function (h2c) {
+                return h2c(document.querySelector('.ranking-container'), {
+                scale: 2, // 提高图片质量
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#1a1a1a',
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: document.documentElement.scrollWidth,
+                windowHeight: document.documentElement.scrollHeight
+                });
+            }).then(function(canvas) {
+                // 获取Base64图片数据
+                const imageDataUrl = canvas.toDataURL('image/png');
+                
+                // 将Base64转换为Blob
+                const blob = dataURLToBlob(imageDataUrl);
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // 创建下载链接并触发下载
+                const downloadLink = document.createElement('a');
+                downloadLink.href = blobUrl;
+                downloadLink.download = '从夯到拉排行榜.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // 在新窗口打开Blob URL
+                window.open(blobUrl, '_blank');
+                
+            }).catch(function(error) {
+                console.error('截图失败:', error);
+                alert('截图失败，请重试。错误信息：' + error.message);
+            });
+        }
+
+
+            
+
+        // Base64转Blob辅助函数
+        function dataURLToBlob(dataURL) {
+            const parts = dataURL.split(',');
+            const mime = parts[0].match(/:(.*?);/)[1];
+            const bstr = atob(parts[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], { type: mime });
+        }
+
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideHelp();
+                hideImageModal();
+                cancelReset();
+            }
+        });
+
+        // 重置排行榜功能
+        function resetRanking() {
+            document.getElementById('reset-modal').style.display = 'flex';
+        }
+
+        function cancelReset() {
+            document.getElementById('reset-modal').style.display = 'none';
+        }
+
+        function confirmReset() {
+            // 清除所有图片
+            document.querySelectorAll('.image-item').forEach(item => item.remove());
+
+            // 重置所有评级为默认状态
+            const defaultTiers = [
+                { name: '夯', color: '#e74d5a' },
+                { name: '顶级', color: '#ff9f43' },
+                { name: '人上人', color: '#5a61e7' },
+                { name: 'NPC', color: '#2ed573' },
+                { name: '拉完了', color: '#747d8c' }
+            ];
+
+            // 清除现有的评级
+            const rankingContainer = document.querySelector('.ranking-container');
+            rankingContainer.innerHTML = '';
+
+            // 重建默认评级
+            defaultTiers.forEach((tier, index) => {
+                const tierDiv = document.createElement('div');
+                tierDiv.className = 'tier';
+                tierDiv.dataset.tier = String.fromCharCode(115 + index); // s, t, u, v, w
+
+                tierDiv.innerHTML = `
+                    <div class="tier-label" style="background-color: ${tier.color};">
+                        <input type="color" class="color-picker" value="${tier.color}" title="编辑颜色">
+                        <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                        <span class="tier-name" contenteditable="true">${tier.name}</span>
+                    </div>
+                    <div class="tier-content"></div>
+                `;
+
+                // 为新tier添加视觉反馈
+                tierDiv.addEventListener('mouseenter', function(e) {
+                    if (isDragging) {
+                        this.classList.add('drag-over');
+                    }
+                });
+                tierDiv.addEventListener('mouseleave', function(e) {
+                    this.classList.remove('drag-over');
+                });
+
+                rankingContainer.appendChild(tierDiv);
+                
+                // 如果启用了固定高度，应用样式
+                if (fixedHeightSetting) {
+                    tierDiv.classList.add('fixed-height');
+                }
+            });
+
+            // IndexedDB 模式下，无需处理 localStorage
+
+            // 重置图片计数器
+            imageCounter = 0;
+
+            // 关闭确认弹窗
+            cancelReset();
+
+            console.log('排行榜已重置');
+            // 重置后立即保存当前空状态
+            try { saveState(); } catch (e) { console.error('保存重置状态失败:', e); }
+        }
+
+        // 点击重置弹窗外部关闭
+        document.getElementById('reset-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cancelReset();
+            }
+        });
+    </script>
+
+    <script>
+
+        // 图片压缩功能
+        async function compressImage(base64String) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 限制最大尺寸为 800x800，保持比例
+                    let width = img.width;
+                    let height = img.height;
+                    const maxSize = 800;
+                    
+                    if (width > maxSize || height > maxSize) {
+                        if (width > height) {
+                            height = (height / width) * maxSize;
+                            width = maxSize;
+                        } else {
+                            width = (width / height) * maxSize;
+                            height = maxSize;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // 绘制并压缩
+                    ctx.drawImage(img, 0, 0, width, height);
+                    // 0.7的质量下，视觉效果和文件大小比较平衡
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.src = base64String;
+            });
+        }
+
+        // IndexedDB数据库相关函数
+        let db = null;
+        const DB_NAME = 'RankingAppDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'rankingState';
+
+        // 初始化IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => {
+                    console.error('IndexedDB初始化失败:', request.error);
+                    reject(request.error);
+                };
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('IndexedDB连接成功');
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        console.log('创建对象存储:', STORE_NAME);
+                    }
+                };
+            });
+        }
+
+        // 保存状态到IndexedDB
+        function saveState() {
+            const state = {
+                tiers: [],
+                unassignedImages: []
+            };
+            
+            // 保存每个tier的状态
+            document.querySelectorAll('.tier').forEach(tier => {
+                const tierLabel = tier.querySelector('.tier-label');
+                // 只获取tier-name元素的文本，如果不存在则使用tierLabel的文本，但排除按钮
+                let tierName = '';
+                const tierNameElement = tier.querySelector('.tier-name');
+                if (tierNameElement) {
+                    tierName = tierNameElement.textContent;
+                } else {
+                    // 如果没有专门的tier-name元素，则从tierLabel中提取纯文本
+                    // 克隆节点以避免修改原始DOM
+                    const tempLabel = tierLabel.cloneNode(true);
+                    // 移除所有按钮元素
+                    tempLabel.querySelectorAll('button, .tier-delete, .tier-color').forEach(el => el.remove());
+                    tierName = tempLabel.textContent.trim();
+                }
+                
+                const tierState = {
+                    name: tierName,
+                    color: tierLabel.style.backgroundColor,
+                    images: []
+                };
+                
+                // 保存tier中的图片
+                tier.querySelectorAll('.image-item').forEach(imageItem => {
+                    const img = imageItem.querySelector('img');
+                    const nameOverlay = imageItem.querySelector('.image-name-overlay');
+                    tierState.images.push({
+                        src: img.src,
+                        name: nameOverlay ? nameOverlay.textContent : '图片'
+                    });
+                });
+                
+                state.tiers.push(tierState);
+            });
+            
+            // 保存未分类的图片
+            document.querySelectorAll('.image-gallery .image-item').forEach(imageItem => {
+                const img = imageItem.querySelector('img');
+                const nameOverlay = imageItem.querySelector('.image-name-overlay');
+                state.unassignedImages.push({
+                    src: img.src,
+                    name: nameOverlay ? nameOverlay.textContent : '图片'
+                });
+            });
+            
+            // 保存图片名称显示设置（来自内存变量）
+            state.showImageNames = !!showImageNamesSetting;
+            
+            // 保存固定高度设置
+            state.fixedHeight = !!fixedHeightSetting;
+            
+            // 保存到IndexedDB
+            saveToIndexedDB(state).then(() => {
+                console.log('状态已保存到IndexedDB');
+            }).catch(e => {
+                console.error('保存状态失败:', e);
+                alert('保存失败：存储空间不足，请删除一些图片后重试');
+            });
+        }
+
+        // 保存数据到IndexedDB
+        function saveToIndexedDB(data) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    initDB().then(() => {
+                        saveToIndexedDB(data).then(resolve).catch(reject);
+                    }).catch(reject);
+                    return;
+                }
+                
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put({ id: 1, data: data });
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // 从IndexedDB加载状态
+        // 辅助函数：将RGB颜色转换为十六进制
+        function rgbToHex(rgb) {
+            if (!rgb || rgb === 'transparent') return '#808080'; // 默认灰色而不是黑色
+            const rgbMatch = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!rgbMatch) return rgb; // 如果不是rgb格式，直接返回
+
+            const toHex = (c) => {
+                const hex = parseInt(c).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            };
+
+            return '#' + toHex(rgbMatch[1]) + toHex(rgbMatch[2]) + toHex(rgbMatch[3]);
+        }
+
+        // 从IndexedDB加载数据
+        function loadFromIndexedDB() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    initDB().then(() => {
+                        loadFromIndexedDB().then(resolve).catch(reject);
+                    }).catch(reject);
+                    return;
+                }
+                
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(1);
+                
+                request.onsuccess = () => {
+                    if (request.result) {
+                        resolve(request.result.data);
+                    } else {
+                        resolve(null);
+                    }
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function loadState() {
+            const savedState = await loadFromIndexedDB();
+            if (!savedState) return;
+            
+            try {
+                // IndexedDB 中直接存储对象，无需 JSON 解析
+                const state = savedState;
+                
+                // 清除现有的图片和评级
+                document.querySelectorAll('.image-item').forEach(item => item.remove());
+                
+                // 保留第一个默认评级，删除其他评级
+                const tiers = document.querySelectorAll('.tier');
+                for (let i = 1; i < tiers.length; i++) {
+                    tiers[i].remove();
+                }
+                
+                // 恢复或创建tier状态
+                const rankingContainer = document.querySelector('.ranking-container');
+                state.tiers.forEach((tierState, index) => {
+                    let tier;
+                    
+                    if (index === 0 && tiers.length > 0) {
+                        // 使用第一个默认评级
+                        tier = tiers[0];
+                    } else {
+                        // 创建新评级
+                        tier = document.createElement('div');
+                        tier.className = 'tier';
+                        tier.dataset.tier = 'tier' + index;
+                        
+                        const hexColor = rgbToHex(tierState.color || '#808080');
+                        
+                        tier.innerHTML = `
+                            <div class="tier-label" style="background-color: ${hexColor};">
+                                <input type="color" class="color-picker" value="${hexColor}" title="编辑颜色">
+                                <button class="delete-tier-btn" onclick="deleteTier(this)" title="删除该评级">×</button>
+                                <span class="tier-name" contenteditable="true">${tierState.name}</span>
+                            </div>
+                            <div class="tier-content"></div>
+                        `;
+                        
+                        // 添加拖拽相关事件监听器
+                        tier.addEventListener('mouseenter', function(e) {
+                            if (isDragging) {
+                                this.classList.add('drag-over');
+                            }
+                        });
+                        
+                        tier.addEventListener('mouseleave', function(e) {
+                            this.classList.remove('drag-over');
+                        });
+                        
+                        rankingContainer.appendChild(tier);
+                    }
+                    
+                    // 更新现有评级
+                    if (index === 0 && tiers.length > 0) {
+                        const tierLabel = tier.querySelector('.tier-label');
+                        const tierName = tier.querySelector('.tier-name');
+
+                        if (tierName) {
+                            tierName.textContent = tierState.name;
+                        }
+
+                        const hexColor = rgbToHex(tierState.color);
+                        tierLabel.style.backgroundColor = hexColor;
+
+                        // 更新颜色选择器的值，确保与评级颜色一致
+                        const colorPicker = tierLabel.querySelector('.color-picker');
+                        if (colorPicker) {
+                            // 确保颜色选择器显示正确的颜色值
+                            const finalColor = hexColor || tierLabel.style.backgroundColor || '#808080';
+                            colorPicker.value = finalColor;
+                        }
+                    }
+                    
+                    // 恢复图片
+                    tierState.images.forEach(imgData => {
+                        const imageItem = createImageItemFromSrc(imgData.src);
+                        // 更新图片名
+                        const nameOverlay = imageItem.querySelector('.image-name-overlay');
+                        if (nameOverlay && imgData.name) {
+                            nameOverlay.textContent = imgData.name;
+                        }
+                        tier.querySelector('.tier-content').appendChild(imageItem);
+                    });
+                });
+                
+                // 恢复未分类的图片
+                const imageGallery = document.querySelector('.image-gallery');
+                const uploadBtn = imageGallery.querySelector('.upload-btn');
+                state.unassignedImages.forEach(imgData => {
+                    const imageItem = createImageItemFromSrc(imgData.src);
+                    // 更新图片名
+                    const nameOverlay = imageItem.querySelector('.image-name-overlay');
+                    if (nameOverlay && imgData.name) {
+                        nameOverlay.textContent = imgData.name;
+                    }
+                    imageGallery.insertBefore(imageItem, uploadBtn);
+                });
+                
+                console.log('状态已恢复');
+                // 恢复图片名称显示设置
+                showImageNamesSetting = !!state.showImageNames;
+                updateImageNamesVisibility(showImageNamesSetting);
+                
+                // 恢复固定高度设置
+                fixedHeightSetting = !!state.fixedHeight;
+                const checkbox = document.getElementById('fixed-height-toggle');
+                if (checkbox) {
+                    checkbox.checked = fixedHeightSetting;
+                }
+                
+                // 应用固定高度样式
+                document.querySelectorAll('.tier').forEach(tier => {
+                    if (fixedHeightSetting) {
+                        tier.classList.add('fixed-height');
+                        adjustImageSizes(tier);
+                    } else {
+                        tier.classList.remove('fixed-height');
+                    }
+                });
+            } catch (e) {
+                console.error('恢复状态失败:', e);
+            }
+        }
+
+        // 从src创建图片项
+        function createImageItemFromSrc(src) {
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            imageItem.dataset.id = 'img-' + (++imageCounter);
+            
+            // 从URL中提取文件名
+            let displayName = '图片';
+            if (!src.startsWith('data:')) {
+                const urlParts = src.split('/');
+                const fileName = urlParts[urlParts.length - 1] || '图片';
+                // 解码URL编码的文件名
+                try {
+                    displayName = decodeURIComponent(fileName);
+                } catch (e) {
+                    displayName = fileName;
+                }
+                
+                // 去掉文件后缀名
+                if (displayName && displayName !== '图片') {
+                    const lastDotIndex = displayName.lastIndexOf('.');
+                    if (lastDotIndex > 0) {
+                        displayName = displayName.substring(0, lastDotIndex);
+                    }
+                }
+            }
+            
+            imageItem.innerHTML = `
+                <img src="${src}" alt="图片">
+                <div class="image-name-overlay">${displayName}</div>
+            `;
+            
+            // 应用当前的图片名称显示设置（来自内存变量）
+            const nameOverlay = imageItem.querySelector('.image-name-overlay');
+            nameOverlay.style.display = showImageNamesSetting ? 'block' : 'none';
+            
+            return imageItem;
+        }
+
+        // 修改文件处理函数，添加压缩功能
+        async function handleFiles(e) {
+            const files = Array.from(e.target.files);
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        // 压缩图片
+                        const compressedImage = await compressImage(e.target.result);
+                        createImageItem(compressedImage, file.name);
+                        // 保存状态
+                        saveState();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        // 在页面加载时恢复状态
+        window.addEventListener('load', function() {
+            initDB().then(() => {
+                loadState();
+            }).catch(e => {
+                console.error('IndexedDB初始化失败:', e);
+            });
+        });
+
+        // 监听窗口大小变化，重新计算图片大小
+        window.addEventListener('resize', function() {
+            if (fixedHeightSetting) {
+                setTimeout(() => {
+                    recalculateAllTierSizes();
+                }, 100);
+            }
+        });
+
+        // 已移除 localStorage 后备方案
+
+        // 添加tier名称编辑事件监听
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('tier-name') || 
+                (e.target.classList.contains('tier-label') && e.target.getAttribute('contenteditable') === 'true')) {
+                // 当tier名称被编辑时，立即保存状态
+                saveState();
+            }
+        });
+
+        // 在状态变化时保存
+        const observer = new MutationObserver(() => {
+            saveState();
+        });
+
+        // 观察ranking-container的变化
+        observer.observe(document.querySelector('.ranking-container'), {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style']
+        });
+
+        // 观察image-gallery的变化
+        observer.observe(document.querySelector('.image-gallery'), {
+            childList: true,
+            subtree: true
+        });
+    </script>
+    <div class="footer">
+        <a href="https://contact.dayun.cool" target="_blank" style="color: #999; text-decoration: none; padding-right: 15px; border-right: 1px solid #66666666; transition: color 0.3s ease;" onmouseover="this.style.color='#88cfde'" onmouseout="this.style.color='#999'">问题反馈</a>
+        <span style="color: #999; padding-left: 15px;"><span style="padding-right: 15px; border-right: 1px solid #66666666;">© 2025-2026 大沄</span><a href='https://space.bilibili.com/192702710' target='_blank' style='color: inherit; text-decoration: none; transition: color 0.3s ease; padding-left: 15px;' onmouseover="this.style.color='#88cfde'" onmouseout="this.style.color='inherit'">bilibili</a></span>
+    </div>
+</body>
+</html>
