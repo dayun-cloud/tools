@@ -1371,6 +1371,58 @@
         return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
     };
 
+    /* ============================================================
+       自动播放解锁
+       浏览器只放行“用户手势里”发起的播放，而生成结果是异步返回的，
+       那时手势早已失效，自动播放会被静默拦截。点「开始生成」/「重试」
+       时先给这条记录播一段无声音频，把它的 audio 元素解锁；拿到真实
+       链接后改写 src 再播放，就不会被自动播放策略拦下。
+       ============================================================ */
+    let silentWavSrc = '';
+
+    function silentWavURL() {
+        if (silentWavSrc) return silentWavSrc;
+        const rate = 8000;
+        const n = rate / 2;                       // 0.5 秒，loop 起来就够了
+        const buf = new ArrayBuffer(44 + n);
+        const dv = new DataView(buf);
+        const tag = (off, s) => {
+            for (let i = 0; i < s.length; i++) dv.setUint8(off + i, s.charCodeAt(i));
+        };
+        tag(0, 'RIFF');
+        dv.setUint32(4, 36 + n, true);
+        tag(8, 'WAVE');
+        tag(12, 'fmt ');
+        dv.setUint32(16, 16, true);
+        dv.setUint16(20, 1, true);                // PCM
+        dv.setUint16(22, 1, true);                // 单声道
+        dv.setUint32(24, rate, true);
+        dv.setUint32(28, rate, true);             // 8bit 单声道，字节率 = 采样率
+        dv.setUint16(32, 1, true);
+        dv.setUint16(34, 8, true);
+        tag(36, 'data');
+        dv.setUint32(40, n, true);
+        new Uint8Array(buf, 44, n).fill(128);     // 8bit PCM 的无符号中点就是静音
+        silentWavSrc = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+        return silentWavSrc;
+    }
+
+    // 必须在用户手势的同一个任务里调用，play() 才会被浏览器放行
+    function unlockedAudio() {
+        // 音源本身就是静音，所以不需要改 volume（Safari 上 volume 是只读的）
+        const audio = new Audio(silentWavURL());
+        audio.loop = true;
+        audio.setAttribute('playsinline', '');
+        liveAudio.add(audio);
+        const p = audio.play();
+        if (p && p.catch) p.catch(() => {});
+        // 请求一直不回来时别让它无限循环
+        setTimeout(() => {
+            if (audio.loop) { audio.loop = false; try { audio.pause(); } catch (_) {} }
+        }, 120000);
+        return audio;
+    }
+
     function recordEl(r) {
         const el = document.createElement('article');
         el.className = 'rec rec--' + r.status + (r.status === 'done' && r.picked ? ' selected' : '');
@@ -1448,7 +1500,14 @@
                 </div>
             </div>`;
 
-        const audio = new Audio(r.url);
+        // 生成记录复用点生成时已解锁的 audio，直接换源即可正常自动播放
+        let audio = r._audio;
+        if (audio) {
+            audio.loop = false;
+            audio.src = r.url;
+        } else {
+            audio = new Audio(r.url);
+        }
         audio.preload = 'none';
         audio.volume = volume;
         liveAudio.add(audio);
@@ -1727,6 +1786,8 @@
 
     function generateOne(voice, text) {
         const r = { id: uid(), text, url: '', voice, ts: Date.now(), status: 'loading', picked: true };
+        // 这里仍在点击/快捷键的手势里，先把这条记录的 audio 解锁
+        if (autoPlay) r._audio = unlockedAudio();
         records.unshift(r);
         $('#emptyState').hidden = true;
         $('#records').prepend(recordEl(r));
@@ -1749,6 +1810,11 @@
             }
             enforceRecordCap();
         }).catch(err => {
+            if (r._audio) {
+                try { r._audio.pause(); } catch (_) {}
+                liveAudio.delete(r._audio);
+                r._audio = null;
+            }
             r.status = 'error';
             r.error = err.message || '网络异常，生成失败';
             const el = $('.rec[data-id="' + r.id + '"]');
