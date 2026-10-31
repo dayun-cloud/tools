@@ -58,10 +58,11 @@
     </a>
 
     <nav class="top-links" aria-label="站点导航">
+        <button class="nav-btn" id="btnConnect" type="button" aria-haspopup="dialog">连接账号</button>
         <button class="nav-btn" id="btnHelp" type="button" aria-haspopup="dialog">使用指南</button>
         <button class="nav-btn" id="btnAnnounce" type="button" aria-haspopup="dialog">公告</button>
         <span class="nav-sep" aria-hidden="true"></span>
-        <a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">AI 创作台</a>
+        <a href="https://vkit.dayun.dev/" target="_blank" rel="noopener">AI 创作台</a>
         <a href="https://contact.dayun.cool" target="_blank" rel="noopener">问题反馈</a>
         <a href="https://space.bilibili.com/192702710" target="_blank" rel="noopener">哔哩哔哩</a>
     </nav>
@@ -79,13 +80,16 @@
     <!-- 左：台词台 -->
     <section class="panel deck" aria-label="台词台">
         <div class="role-card">
-            <div class="role-avatar"><span id="roleInitial">曼</span></div>
+            <div class="role-avatar">
+                <img id="roleAvatarImg" src="assets/manbo.ico" alt="" width="26" height="26" hidden>
+                <span id="roleInitial">曼</span>
+            </div>
             <div class="role-info">
                 <span class="eyebrow">当前角色</span>
                 <div class="role-line">
                     <h1 id="voiceName">曼波</h1>
-                    <span class="limit-pill" id="roleLimit">300 字/段</span>
-                    <span class="role-meta" id="roleMeta">50 次 / 天</span>
+                    <span class="limit-pill" id="roleLimit">1024 字/段</span>
+                    <span class="role-meta" id="roleMeta">免费 –/20 次</span>
                 </div>
             </div>
             <button class="btn-switch" id="btnVoicePicker" type="button" title="打开角色面板">
@@ -140,7 +144,7 @@
                 <span>开始生成</span>
                 <kbd id="genKbd">Ctrl ↵</kbd>
             </button>
-            <p class="quota" id="quotaHint">「曼波」每天 50 次免费额度（源 API 站限制）· 其他角色不限次数</p>
+            <p class="quota" id="quotaHint">今日免费 –/20 次 · 超出按 0.01 积分/条 · 单段上限 1024 字</p>
         </div>
     </section>
 
@@ -257,6 +261,26 @@
     </div>
 </div>
 
+<!-- 连接账号 -->
+<div class="veil" id="tokenModal" aria-hidden="true">
+    <div class="sheet sheet-announce" role="dialog" aria-modal="true" aria-labelledby="tokenTitle">
+        <div class="sheet-head">
+            <h2 id="tokenTitle">连接账号</h2>
+            <button class="sheet-x" type="button" data-close aria-label="关闭">
+                <svg class="ic" aria-hidden="true"><use href="#i-x"></use></svg>
+            </button>
+        </div>
+        <div class="announce-body">
+            <p>登录 <a href="https://vkit.dayun.dev/" target="_blank" rel="noopener">AI 创作台</a>，在「用户中心 → API 令牌」创建一个令牌，粘贴到这里即可开始生成。每天前 20 次免费，生成记录两边同步。</p>
+            <input type="text" class="palette-search" id="tokenInput" placeholder="粘贴 API 令牌（vk_ 开头）…" autocomplete="off" spellcheck="false" style="margin-top: 10px;">
+        </div>
+        <div class="sheet-actions">
+            <button class="btn" id="tokenClear" type="button" hidden>断开连接</button>
+            <button class="btn btn-primary" id="tokenSave" type="button">保存</button>
+        </div>
+    </div>
+</div>
+
 <!-- 公告 -->
 <div class="veil" id="announceModal" aria-hidden="true">
     <div class="sheet sheet-announce" role="dialog" aria-modal="true" aria-labelledby="announceTitle">
@@ -284,11 +308,17 @@
             </button>
         </div>
         <div class="help-body">
+            <h3>连接与额度</h3>
+            <ul class="help-list">
+                <li>点右上角「连接账号」，粘贴在 <a href="https://vkit.dayun.dev/" target="_blank" rel="noopener">AI 创作台</a>「用户中心 → API 令牌」创建的令牌即可。</li>
+                <li>每个账号<b>每天免费 20 次</b>（与创作台共享同一份额度），超出按 <b>0.01 积分/条</b> 计费，积分在创作台充值。</li>
+                <li>只有<b>生成成功</b>才占免费次数；失败的自动返还。</li>
+            </ul>
+
             <h3>角色与限制</h3>
             <ul class="help-list">
-                <li>先选角色（默认「曼波」），台词最多 <b>10 段</b>；「曼波」单段限 <b>300 字</b>，其他角色限 <b>1024 字</b>。</li>
-                <li>「曼波」每天免费 <b>50 次</b>，超出会报错（源 API 站限制，前端无法解除）；其他角色暂无次数限制。</li>
-                <li>若 API 报错为源站问题，一般等周末会恢复，可稍后再试。</li>
+                <li>先选角色（默认「曼波」），台词最多 <b>10 段</b>，单段限 <b>1024 字</b>。</li>
+                <li>100+ 热门角色可在角色面板里搜索与试听。</li>
             </ul>
 
             <h3>批量导入</h3>
@@ -301,18 +331,17 @@
             <h3>试听与记录</h3>
             <ul class="help-list">
                 <li>试听使用站点内置的本地音频，不占用生成次数；播放过的音频会缓存到本机浏览器，之后不再请求服务器。</li>
-                <li>生成记录最多保留 <b>100 条</b>，存在本机浏览器，清除数据会丢失，请及时下载保存。</li>
+                <li>生成记录最多保留 <b>100 条</b>，记录与创作台同步。</li>
             </ul>
 
-            <h3>网络与付费</h3>
+            <h3>异常处理</h3>
             <ul class="help-list">
-                <li>如果音频无法播放 / 下载 / 加载慢，为源站问题，可稍后再试。</li>
-                <li>所有生成音频统一经由 <a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">VKit</a> 服务器代理分发；如需使用付费版：<a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">前往 VKit</a>。</li>
-                <li>语音生成由 <a href="https://api.milorapart.top/" target="_blank" rel="noopener">Milora</a> 提供 API 支持。</li>
+                <li>提示 401 / 请先连接账号：令牌可能已撤销，重新粘贴一个即可。</li>
+                <li>如果音频无法播放 / 下载 / 加载慢，多为服务繁忙，可稍后再试。</li>
             </ul>
 
             <div class="help-links">
-                <a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">AI 创作台</a>
+                <a href="https://vkit.dayun.dev/" target="_blank" rel="noopener">AI 创作台</a>
                 <a href="https://contact.dayun.cool" target="_blank" rel="noopener">问题反馈</a>
                 <a href="ranking">从夯到拉排行榜</a>
                 <a href="/">回到主站</a>
@@ -330,28 +359,24 @@
     /* ============================================================
        常量与状态
        ============================================================ */
-    const API_BASE      = 'https://api.milorapart.top/apis';
-    const PREVIEW_TEXT  = '欢迎使用曼波配音';
-    const LOCAL_PREVIEW = 'assets/previews/';
-    const LOCAL_PREVIEW_VERSION = 1;
+    const API_BASE      = localStorage.getItem('vkit_api_base') || 'https://vkit.dayun.dev';
     const MAX_SEGMENTS  = 10;
     const MAX_IMPORT    = 10;
     const MAX_RECORDS   = 100;
     const VOICE_TTL     = 24 * 3600e3;
-    const MANBO_CHARS   = 300;
-    const OTHER_CHARS   = 1024;
-    // 付费接口不做；已知「如来佛祖」音色异常，直接下架
-    const EXCLUDED_VOICES = new Set(['曼波付费', '如来佛祖']);
+    const TEXT_CHARS    = 1024;
+    const POLL_INTERVAL = 3000;
+    const DEFAULT_FREE_QUOTA = 20;
 
     const LS = {
         voice: 'manbo_voice',
         volume: 'manbo_volume',
         autoplay: 'manbo_autoplay',
         csvRecord: 'manbo_csv_record',
-        history: 'tts_history',
         announce: 'announcement_data',
         theme: 'theme',
-        voices: 'manbo_voices',
+        voices: 'manbo_voices_v2',
+        token: 'vkit_token',
     };
 
     let voices = ['曼波'];
@@ -362,11 +387,14 @@
     let volume = parseFloat(localStorage.getItem(LS.volume));
     if (isNaN(volume) || volume < 0 || volume > 1) volume = 1;
 
+    let freeUsed = null;
+    let freeMax = DEFAULT_FREE_QUOTA;
+    let pollTimer = null;
+
     let importedSegments = [];
     const importedSelection = new Set();
 
     const previewURLs = new Map();
-    const localPreviewCache = new Map();
     let previewAudio = null;
     let previewToken = 0;
     let previewState = { voice: null, btn: null };
@@ -376,7 +404,10 @@
     const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const uid = () => 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-    const charLimit = () => currentVoice === '曼波' ? MANBO_CHARS : OTHER_CHARS;
+    const charLimit = () => TEXT_CHARS;
+    // 界面上展示「曼波」，接口里它的 id 是 manbo
+    const displayVoice = v => v === 'manbo' ? '曼波' : v;
+    const apiVoice = v => v === '曼波' ? 'manbo' : v;
 
     /* ============================================================
        弹窗基础
@@ -650,6 +681,33 @@
     /* ============================================================
        API
        ============================================================ */
+    function hasToken() {
+        return !!localStorage.getItem(LS.token);
+    }
+
+    async function apiFetch(path, options = {}) {
+        const headers = { 'content-type': 'application/json' };
+        const token = localStorage.getItem(LS.token);
+        if (token) headers.authorization = 'Bearer ' + token;
+        let res;
+        try { res = await fetch(API_BASE + path, { ...options, headers }); }
+        catch (_) { throw new Error('网络异常，请稍后重试'); }
+        let body = null;
+        try { body = await res.json(); } catch (_) {}
+        if (res.status === 401) {
+            // 带了令牌还被拒：令牌失效，主动弹连接框；没带令牌的静默失败，交给交互入口引导
+            if (token) {
+                openTokenModal(true);
+                throw new Error('账号连接已失效，请重新粘贴令牌');
+            }
+            throw new Error('请先连接账号');
+        }
+        if (!res.ok || !body || body.ok !== true) {
+            throw new Error((body && body.error && body.error.message) || '请求失败，请稍后重试');
+        }
+        return body.data;
+    }
+
     async function fetchList() {
         try {
             const cached = JSON.parse(localStorage.getItem(LS.voices) || 'null');
@@ -658,20 +716,13 @@
             }
         } catch (_) {}
 
-        const fetchWithTimeout = async ms => {
-            const ctrl = new AbortController();
-            const timer = setTimeout(() => ctrl.abort(), ms);
-            try { return await fetch(API_BASE + '/AIvoice/?type=list', { signal: ctrl.signal }); }
-            finally { clearTimeout(timer); }
-        };
-
         for (let attempt = 0; attempt < 2; attempt++) {
             try {
-                const res = await fetchWithTimeout(8000);
-                const data = await res.json();
-                if (data.code === 200 && Array.isArray(data.speakers) && data.speakers.length) {
-                    localStorage.setItem(LS.voices, JSON.stringify({ ts: Date.now(), speakers: data.speakers }));
-                    applyVoices(data.speakers);
+                const data = await apiFetch('/api/manbo/voices');
+                if (Array.isArray(data.voices) && data.voices.length) {
+                    localStorage.setItem(LS.voices, JSON.stringify({ ts: Date.now(), speakers: data.voices }));
+                    applyVoices(data.voices);
+                    refreshQuota();
                     return;
                 }
             } catch (_) {}
@@ -680,7 +731,7 @@
     }
 
     function applyVoices(speakers) {
-        const rest = speakers.filter(v => !EXCLUDED_VOICES.has(v) && v !== '曼波');
+        const rest = speakers.filter(v => displayVoice(v) !== '曼波').map(displayVoice);
         rest.sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
         voices = ['曼波', ...rest];
         $('#voiceCount').textContent = voices.length + '个';
@@ -694,12 +745,15 @@
 
     function renderCurrentVoice() {
         $('#voiceName').textContent = currentVoice;
+        // 曼波角色用站标当头像，其他角色用首字占位
+        const isManbo = currentVoice === '曼波';
+        $('#roleAvatarImg').hidden = !isManbo;
+        $('#roleInitial').hidden = isManbo;
         $('#roleInitial').textContent = currentVoice.slice(0, 1);
         $('#roleLimit').textContent = charLimit() + ' 字/段';
-        $('#roleMeta').textContent = currentVoice === '曼波' ? '50 次 / 天' : '不限次数';
-        $('#quotaHint').textContent = currentVoice === '曼波'
-            ? '「曼波」每天 50 次免费额度（源 API 站限制）· 其他角色不限次数'
-            : '当前角色不限生成次数 · 单段上限 ' + charLimit() + ' 字';
+        $('#roleMeta').textContent = '免费 ' + (freeUsed === null ? '–' : freeUsed) + '/' + freeMax + ' 次';
+        $('#quotaHint').textContent = '今日免费 ' + (freeUsed === null ? '–' : freeUsed) + '/' + freeMax
+            + ' 次 · 超出按 0.01 积分/条 · 单段上限 ' + charLimit() + ' 字';
 
         $$('#segments .seg-text').forEach(t => {
             t.maxLength = charLimit();
@@ -708,38 +762,100 @@
         if (importedSegments.length && $('#importModal').classList.contains('open')) renderImportList();
     }
 
-    function buildGenUrl(voice, text) {
-        const p = new URLSearchParams({ text });
-        if (voice === '曼波') {
-            p.set('format', 'mp3');
-            return API_BASE + '/mbAIsc?' + p.toString();
-        }
-        p.set('speaker', voice);
-        return API_BASE + '/AIvoice/?' + p.toString();
-    }
-
-    const REMOTE_AUDIO_PROXY = 'https://vkitpro.dayun.cool/api/manbo/remote-audio?u=';
-    function wrapRemoteAudio(url, name) {
-        if (!url || url.startsWith(REMOTE_AUDIO_PROXY)) return url;
-        let link = REMOTE_AUDIO_PROXY + encodeURIComponent(url);
-        // name 由代理透传到下载头；vkit 侧会再清洗一遍，这里只做 URL 编码
-        if (name) link += '&name=' + encodeURIComponent(name);
-        return link;
-    }
     function audioFileName(voice, text) {
         const safe = (text || '').slice(0, 10).replace(/[\\/:*?"<>|\r\n]/g, '');
         return (voice || '曼波') + '-' + safe + '.mp3';
     }
 
-    async function requestAudio(url) {
-        let res;
-        try { res = await fetch(url); }
-        catch (_) { throw new Error('网络异常，生成失败'); }
-        let data;
-        try { data = await res.json(); }
-        catch (_) { throw new Error('网络异常，生成失败'); }
-        if (data && data.code === 200 && data.url) return data.url;
-        throw new Error((data && data.msg) || 'API 异常，生成失败');
+    /* ------------------------ 每日免费额度 ------------------------ */
+
+    async function refreshQuota() {
+        try {
+            const data = await apiFetch('/api/manbo/quota');
+            freeMax = data.freeMax || DEFAULT_FREE_QUOTA;
+            freeUsed = data.freeUsed;
+            renderCurrentVoice();
+        } catch (_) {}
+    }
+
+    function updateFreeQuota(freeLeft) {
+        if (typeof freeLeft !== 'number') return;
+        freeUsed = Math.max(0, freeMax - freeLeft);
+        renderCurrentVoice();
+    }
+
+    /* ------------------------ 生成与轮询 ------------------------ */
+
+    function schedulePoll() {
+        if (pollTimer) return;
+        pollTimer = setInterval(pollTasks, POLL_INTERVAL);
+    }
+
+    async function pollTasks() {
+        const pending = records.filter(r => r.status === 'loading' && r.taskId);
+        if (!pending.length) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            return;
+        }
+        let tasks;
+        try { tasks = (await apiFetch('/api/manbo/tasks')).tasks || []; }
+        catch (_) { return; }
+        const byId = new Map(tasks.map(t => [t.id, t]));
+        let settled = false;
+        pending.forEach(r => {
+            const t = byId.get(r.taskId);
+            if (!t) return;
+            if (t.status === 'success') {
+                settled = true;
+                completeRecord(r, (t.results && t.results[0] && t.results[0].url) || '');
+            } else if (t.status === 'failed') {
+                settled = true;
+                failRecord(r, t.error || '生成失败，请稍后重试');
+            }
+        });
+        if (settled) refreshQuota();
+    }
+
+    function completeRecord(r, url) {
+        r.url = url;
+        r.status = url ? 'done' : 'error';
+        if (!url) r.error = '生成失败，请重试';
+        r.ts = r.ts || Date.now();
+        replaceRecordEl(r);
+        if (r.status === 'done' && autoPlay) {
+            stopAllAudio();
+            const el = $('.rec[data-id="' + r.id + '"]');
+            const playBtn = el && $('.play', el);
+            if (playBtn) playBtn.click();
+        }
+        enforceRecordCap();
+        void refreshQuota();
+    }
+
+    function failRecord(r, message) {
+        if (r._audio) {
+            try { r._audio.pause(); } catch (_) {}
+            liveAudio.delete(r._audio);
+            r._audio = null;
+        }
+        r.status = 'error';
+        r.error = message;
+        replaceRecordEl(r);
+        enforceRecordCap();
+    }
+
+    function replaceRecordEl(r) {
+        const el = $('.rec[data-id="' + r.id + '"]');
+        if (el) {
+            if (el._audio) {
+                try { el._audio.pause(); } catch (_) {}
+                liveAudio.delete(el._audio);
+                el._audio = null;
+            }
+            el.remove();
+            $('#records').prepend(recordEl(r));
+        }
     }
 
     /* ============================================================
@@ -782,84 +898,35 @@
 
     const idbGet = key => idbRead('previews', key);
     const idbSet = (key, blob) => idbWrite('previews', key, blob);
-    const idbGetFile = key => idbRead('previewFiles', key);
-    const idbSetFile = (key, value) => idbWrite('previewFiles', key, value);
-
-    function localPreviewUrl(voice) {
-        return LOCAL_PREVIEW + encodeURIComponent(voice) + '.mp3';
-    }
-
-    // 本地试听优先，避免为已有音频的角色再消耗接口次数
-    async function hasLocalPreview(voice) {
-        if (localPreviewCache.has(voice)) return localPreviewCache.get(voice);
-        let ok = false;
-        try {
-            const res = await fetch(localPreviewUrl(voice), { method: 'HEAD' });
-            const type = (res.headers.get('content-type') || '').toLowerCase();
-            // 开发服务器对缺失文件会回退 index.html（text/html），不能只看状态码
-            ok = res.ok && (type.startsWith('audio/') || type.includes('octet-stream'));
-        } catch (_) {}
-        localPreviewCache.set(voice, ok);
-        return ok;
-    }
 
     async function getPreviewSrc(voice) {
         const cachedSrc = previewURLs.get(voice);
         if (cachedSrc) return cachedSrc;
 
-        // 1) 本地试听文件已缓存到 IndexedDB：直接用 blob，不再请求服务器
-        const cached = await idbGetFile(voice);
-        if (cached && cached.version === LOCAL_PREVIEW_VERSION && cached.blob instanceof Blob) {
-            const src = URL.createObjectURL(cached.blob);
+        // 1) 播过一次的缓存在 IndexedDB，不再请求服务器
+        const cached = await idbGet(voice);
+        if (cached instanceof Blob && cached.size > 0) {
+            const src = URL.createObjectURL(cached);
             previewURLs.set(voice, src);
             return src;
         }
 
-        // 2) 首次播放：下载本地 MP3，写入 IndexedDB，之后不再请求
-        if (await hasLocalPreview(voice)) {
-            const localUrl = localPreviewUrl(voice);
-            try {
-                const resp = await fetch(localUrl);
-                if (!resp.ok) throw new Error('bad');
-                const blob = await resp.blob();
-                if (blob.size > 0) {
-                    idbSetFile(voice, {
-                        blob,
-                        version: LOCAL_PREVIEW_VERSION,
-                        ts: Date.now(),
-                    });
-                    const src = URL.createObjectURL(blob);
-                    previewURLs.set(voice, src);
-                    return src;
-                }
-            } catch (_) {
-                /* 下载失败就退回直接用 URL 播放 */
+        // 2) 首次试听：从服务端获取（个别角色首次会稍慢）
+        const headers = {};
+        const token = localStorage.getItem(LS.token);
+        if (token) headers.authorization = 'Bearer ' + token;
+        const resp = await fetch(API_BASE + '/api/manbo/preview?voice=' + encodeURIComponent(apiVoice(voice)), { headers });
+        if (resp.status === 401) {
+            if (token) {
+                openTokenModal(true);
+                throw new Error('账号连接已失效，请重新粘贴令牌');
             }
-            previewURLs.set(voice, localUrl);
-            return localUrl;
+            throw new Error('请先连接账号');
         }
-
-        // 3) 本地缺失：旧版接口试听缓存/接口
-        const blob = await idbGet(voice);
-        if (blob) {
-            const src = URL.createObjectURL(blob);
-            previewURLs.set(voice, src);
-            return src;
-        }
-
-        const url = await requestAudio(buildGenUrl(voice, PREVIEW_TEXT));
-        let src = url;
-        try {
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error('bad');
-            const b = await resp.blob();
-            if (b.size > 0) {
-                idbSet(voice, b);
-                src = URL.createObjectURL(b);
-            }
-        } catch (_) {
-            /* 音频域名无 CORS，退回直接用 URL 播放 */
-        }
+        if (!resp.ok) throw new Error('试听获取失败');
+        const audioBlob = await resp.blob();
+        if (audioBlob.size > 0) idbSet(voice, audioBlob);
+        const src = URL.createObjectURL(audioBlob);
         previewURLs.set(voice, src);
         return src;
     }
@@ -1191,40 +1258,34 @@
     }
 
     /* ============================================================
-       生成记录
+       生成记录（与创作台同一份，服务端为准，不落本地）
        ============================================================ */
-    function loadHistory() {
-        try {
-            const arr = JSON.parse(localStorage.getItem(LS.history) || '[]');
-            if (!Array.isArray(arr)) return;
-            arr.forEach(h => {
-                if (!h) return;
-                records.push({
-                    id: uid(),
-                    text: h.fullText || h.text || '',
-                    url: wrapRemoteAudio(h.url || '', audioFileName(h.voice, h.fullText || h.text)),
-                    voice: h.voice || '',
-                    ts: h.ts || 0,
-                    status: h.url ? 'done' : 'error',
-                    picked: false,
-                });
-            });
-            records = records.slice(0, MAX_RECORDS);
-        } catch (_) {}
+    async function loadRecords() {
+        if (!hasToken()) return;
+        let tasks;
+        try { tasks = (await apiFetch('/api/manbo/tasks')).tasks || []; }
+        catch (_) { return; }
+        records = tasks.map(t => ({
+            id: uid(),
+            taskId: t.id,
+            text: t.prompt || '',
+            url: (t.results && t.results[0] && t.results[0].url) || '',
+            voice: displayVoice(t.voice || 'manbo'),
+            ts: t.createdAt || 0,
+            status: t.status === 'success' ? 'done' : (t.status === 'failed' ? 'error' : 'loading'),
+            error: t.error || '',
+            picked: false,
+        })).slice(0, MAX_RECORDS);
+        $$('.rec').forEach(el => el.remove());
+        records.forEach(r => $('#records').appendChild(recordEl(r)));
+        renderCount();
+        if (records.some(r => r.status === 'loading' && r.taskId)) schedulePoll();
     }
 
-    function saveHistory() {
-        const arr = records
-            .filter(r => r.status === 'done')
-            .slice(0, MAX_RECORDS)
-            .map(r => ({
-                text: r.text.slice(0, 12),
-                fullText: r.text,
-                url: r.url,
-                voice: r.voice,
-                ts: r.ts,
-            }));
-        try { localStorage.setItem(LS.history, JSON.stringify(arr)); } catch (_) {}
+    async function removeTask(r) {
+        if (!r.taskId) return;
+        try { await apiFetch('/api/manbo/tasks/' + encodeURIComponent(r.taskId), { method: 'DELETE' }); }
+        catch (_) { toast('记录删除失败，刷新后会重新出现', 'warn'); }
     }
 
     function enforceRecordCap() {
@@ -1245,7 +1306,6 @@
                 el.remove();
             }
         }
-        saveHistory();
         renderCount();
     }
 
@@ -1626,8 +1686,8 @@
                 }
                 records = records.filter(x => x.id !== r.id);
                 el.remove();
-                saveHistory();
                 renderCount();
+                void removeTask(r);
                 return;
             }
 
@@ -1636,6 +1696,7 @@
                 records = records.filter(x => x.id !== r.id);
                 el.remove();
                 renderCount();
+                void removeTask(r);
                 generateOne(r.voice || currentVoice, r.text);
                 return;
             }
@@ -1774,6 +1835,10 @@
        ============================================================ */
     async function generate() {
         if (modalStack.length) return;
+        if (!hasToken()) {
+            openTokenModal(false);
+            return;
+        }
         const segs = getSegments();
         if (!segs.length) return;
         const over = segs.find(s => s.length > charLimit());
@@ -1793,37 +1858,27 @@
         $('#records').prepend(recordEl(r));
         enforceRecordCap();
 
-        requestAudio(buildGenUrl(voice, text)).then(url => {
-            r.url = wrapRemoteAudio(url, audioFileName(voice, text));
-            r.status = 'done';
-            r.ts = r.ts || Date.now();
-            const el = $('.rec[data-id="' + r.id + '"]');
-            if (el) {
-                el.remove();
-                const fresh = recordEl(r);
-                $('#records').prepend(fresh);
-                if (autoPlay) {
-                    stopAllAudio();
-                    const playBtn = $('.play', fresh);
-                    if (playBtn) playBtn.click();
-                }
+        void submitTask(r, voice, text);
+    }
+
+    async function submitTask(r, voice, text) {
+        try {
+            const data = await apiFetch('/api/manbo/tasks', {
+                method: 'POST',
+                body: JSON.stringify({ text, voice: apiVoice(voice) }),
+            });
+            r.taskId = data.task && data.task.id;
+            updateFreeQuota(data.freeLeft);
+            // 同步接口，提交返回时往往已经生成完
+            if (data.task && data.task.status === 'success') {
+                completeRecord(r, (data.task.results && data.task.results[0] && data.task.results[0].url) || '');
+                refreshQuota();
+                return;
             }
-            enforceRecordCap();
-        }).catch(err => {
-            if (r._audio) {
-                try { r._audio.pause(); } catch (_) {}
-                liveAudio.delete(r._audio);
-                r._audio = null;
-            }
-            r.status = 'error';
-            r.error = err.message || '网络异常，生成失败';
-            const el = $('.rec[data-id="' + r.id + '"]');
-            if (el) {
-                el.remove();
-                $('#records').prepend(recordEl(r));
-            }
-            enforceRecordCap();
-        });
+            schedulePoll();
+        } catch (err) {
+            failRecord(r, err.message || '网络异常，生成失败');
+        }
     }
 
     /* ============================================================
@@ -1881,9 +1936,9 @@
             liveAudio.forEach(a => { try { a.pause(); } catch (_) {} });
             liveAudio.clear();
             records = [];
-            saveHistory();
             $$('.rec').forEach(el => el.remove());
             renderCount();
+            void apiFetch('/api/manbo/tasks/all', { method: 'DELETE' }).catch(() => {});
             toast('已清空生成记录');
         });
 
@@ -1992,24 +2047,61 @@
     }
 
     /* ============================================================
+       连接账号
+       ============================================================ */
+    function openTokenModal(warn) {
+        $('#tokenInput').value = localStorage.getItem(LS.token) || '';
+        $('#tokenClear').hidden = !hasToken();
+        openModal('#tokenModal');
+        if (warn) toast('请先连接账号', 'warn');
+        setTimeout(() => $('#tokenInput').focus(), 100);
+    }
+
+    function bindConnect() {
+        $('#btnConnect').addEventListener('click', () => openTokenModal(false));
+        $('#tokenSave').addEventListener('click', () => {
+            const value = $('#tokenInput').value.trim();
+            if (!value) {
+                toast('请粘贴 API 令牌', 'warn');
+                return;
+            }
+            localStorage.setItem(LS.token, value);
+            closeModal($('#tokenModal'));
+            toast('已连接，开始生成吧');
+            fetchList();
+            refreshQuota();
+            loadRecords();
+            if (records.some(r => r.status === 'loading' && r.taskId)) schedulePoll();
+        });
+        $('#tokenClear').addEventListener('click', () => {
+            localStorage.removeItem(LS.token);
+            closeModal($('#tokenModal'));
+            toast('已断开连接');
+        });
+        $('#tokenInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') $('#tokenSave').click();
+        });
+    }
+
+    /* ============================================================
        公告
        ============================================================ */
     const ANNOUNCEMENT_CONFIG = {
-        version: '22',
+        version: '24',
         content: `
-            <p>⚠️ 杯具预警：源 API 站即将<strong>取消免费版配音</strong>，后续仅提供包月服务，具体收费方案暂未公布。本站可能会<strong>关闭</strong>，免费额度能用一天是一天，大家且用且珍惜！刚建了一个QQ群，点击下方链接加入。可以讨论下后续包月的方案。</p>
+            <p>🎉 配音服务已全面升级：接入 <strong>VKit 创作台账号体系</strong>，每个账号（无需充值）<strong>每天免费 20 次</strong>，100+ 热门角色任选，支持搜索与试听！</p>
+            <p>使用方式：点右上角「连接账号」，粘贴在 <a href="https://vkit.dayun.dev/" target="_blank" rel="noopener">VKit 创作台</a>「用户中心 → API 令牌」创建的令牌即可。生成记录两边同步，超出免费额度后按 0.01 积分/条计费（创作台内充值）。</p>
             <div class="announce-links">
-                <a href="https://space.bilibili.com/192702710" target="_blank" rel="noopener">哔哩哔哩</a>
+                <a href="https://vkit.dayun.dev/" target="_blank" rel="noopener">VKit 创作台</a>
                 <a href="https://contact.dayun.cool" target="_blank" rel="noopener">问题反馈</a>
-                <a href="https://vkitpro.dayun.cool/" target="_blank" rel="noopener">VKit 站点</a>
+                <a href="https://space.bilibili.com/192702710" target="_blank" rel="noopener">哔哩哔哩</a>
                 <a href="https://qm.qq.com/q/XeMmOT0Agu" target="_blank" rel="noopener">QQ交流群</a>
             </div>
             <div class="announce-highlight">
                 <span class="announce-label">近期更新公告</span>
-                <p>🎉 网页版持续更新：支持 100+ 热门角色配音、多段落批量生成、多格式文本导入！</p>
-                <p>后续将集中维护网页版，桌面版（Win 端）将<strong>停止维护</strong>，不再提供下载与更新；已下载的用户仍可继续使用，但建议改用网页版，Mac 端、移动端都能直接使用。</p>
+                <p>源API站不再提供免费使用，只支持包月计划。我这边给大家免费提供一定额度的使用机会，为防止滥用，需要注册 VKit 账号。</p>
+                <p>后续将集中维护网页版，桌面版（Win 端）将<strong>停止维护</strong>，不再提供下载与更新使用。</p>
             </div>
-            <p>生成音频的链接通过 VKit 服务器代理分发，之前个别用户连不上源 API 站导致的加载慢 / 失败问题不会再出现（但是源 API 站如果异常依旧无解）。</p>
         `,
     };
 
@@ -2056,18 +2148,27 @@
         bindRecords();
         bindControls();
         bindAnnounce();
+        bindConnect();
         initShortcutLabel();
 
         addSegment('');
         renderCurrentVoice();
 
-        loadHistory();
-        records.forEach(r => $('#records').appendChild(recordEl(r)));
-        saveHistory();
-        renderCount();
-
         checkAnnouncement();
-        fetchList();
+        // 所有请求都要先连接账号，游客状态不发空请求
+        if (hasToken()) {
+            fetchList();
+            refreshQuota();
+            loadRecords();
+        }
+        // 记录与创作台共享：空闲时也定期同步，别处（创作台/别的设备）生成的会自己出现。
+        // 有任务在跑时交给轮询；正在播放音频时避让，别把正在听的记录重渲染掉
+        setInterval(() => {
+            if (!hasToken() || document.hidden) return;
+            if (records.some(r => r.status === 'loading' && r.taskId)) return;
+            if (liveAudio.size > 0) return;
+            loadRecords();
+        }, 60000);
     });
 })();
 </script>

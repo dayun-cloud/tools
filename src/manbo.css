@@ -344,12 +344,21 @@ html[data-theme="light"] .icon-moon { display: none; }
     border-radius: 13px;
     display: grid;
     place-items: center;
+    padding: 3px;
     background: var(--grad);
     color: #062028;
     font-size: 19px;
     font-weight: 800;
     letter-spacing: -.02em;
     box-shadow: 0 12px 28px -16px rgba(102, 167, 189, .9);
+    overflow: hidden;
+}
+.role-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 9px;
+    object-fit: cover;
+    background: var(--panel-solid);
 }
 .role-avatar::after {
     content: "";
